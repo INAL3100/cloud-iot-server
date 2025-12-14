@@ -42,6 +42,9 @@ def homepage():
                 padding: 8px;
                 text-align: center;
             }
+            th {
+                background-color: #f2f2f2;
+            }
         </style>
     </head>
     <body>
@@ -50,27 +53,41 @@ def homepage():
         <tr>
             <th>Sensor</th>
             <th>Date</th>
-            <th>Readings (Time / Value)</th>
+            <th>Time</th>
+            <th>Reading</th>
             <th>Average</th>
         </tr>
     """
 
+    # Iterate over each sensor's data
     for (sensor, date), readings in data_store.items():
+        # Values for this sensor
+        times = [t for t, _ in readings]
         values = [v for _, v in readings]
         avg = round(sum(values) / len(values), 2)
 
-        readings_text = "<br>".join(
-            [f"{t} → {v}" for t, v in readings]
-        )
-
-        page += f"""
-        <tr>
-            <td>{sensor}</td>
-            <td>{date}</td>
-            <td>{readings_text}</td>
-            <td>{avg}</td>
-        </tr>
-        """
+        # Add rows for each time-value pair
+        for i in range(len(times)):
+            # For the first row of each sensor, show sensor and date
+            if i == 0:
+                page += f"""
+                <tr>
+                    <td rowspan="{len(times)}">{sensor}</td>
+                    <td rowspan="{len(times)}">{date}</td>
+                    <td>{times[i]}</td>
+                    <td>{values[i]}</td>
+                    {"<td rowspan='%d'>%s</td>" % (len(times), avg) if i == len(times) - 1 else ""}
+                </tr>
+                """
+            else:
+                # For subsequent rows, show only time and reading
+                page += f"""
+                <tr>
+                    <td>{times[i]}</td>
+                    <td>{values[i]}</td>
+                    {"<td></td>" if i != len(times) - 1 else ""}
+                </tr>
+                """
 
     page += """
     </table>
