@@ -61,7 +61,7 @@ def homepage():
 
     # Iterate over each sensor's data
     for (sensor, date), readings in data_store.items():
-        # Values for this sensor
+        # Extract time and value separately
         times = [t for t, _ in readings]
         values = [v for _, v in readings]
         avg = round(sum(values) / len(values), 2)
