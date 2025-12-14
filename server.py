@@ -3,55 +3,80 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Store all readings in memory
-data_list = []
+# Key = (sensor_id, date)
+# Value = list of (time, value)
+data_store = {}
 
 @app.route("/data", methods=["POST"])
 def receive_data():
     sensor_id = request.form.get("sensor_id")
-    value = request.form.get("value")
+    value = float(request.form.get("value"))
 
     now = datetime.now()
+    date = now.strftime("%Y-%m-%d")
+    time = now.strftime("%H:%M")
 
-    data_list.append({
-        "sensor": sensor_id,
-        "date": now.strftime("%Y-%m-%d"),
-        "time": now.strftime("%H:%M:%S"),
-        "value": float(value)
-    })
+    key = (sensor_id, date)
+
+    if key not in data_store:
+        data_store[key] = []
+
+    data_store[key].append((time, value))
 
     return "OK", 200
 
 
 @app.route("/")
 def homepage():
-    page = "<h1>Sensor Data (IT View)</h1>"
+    page = """
+    <html>
+    <head>
+        <style>
+            table {
+                border-collapse: collapse;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+    <h1 style="text-align:center;">Sensor Data (IT View)</h1>
+    <table>
+        <tr>
+            <th>Sensor</th>
+            <th>Date</th>
+            <th>Readings (Time → Value)</th>
+            <th>Average</th>
+        </tr>
+    """
 
-    # Table
-    page += "<table border='1' cellpadding='5'>"
-    page += "<tr><th>Sensor</th><th>Date</th><th>Time</th><th>Value</th></tr>"
+    for (sensor, date), readings in data_store.items():
+        values = [v for _, v in readings]
+        avg = round(sum(values) / len(values), 2)
 
-    sums = {}
-    counts = {}
+        readings_text = "<br>".join(
+            [f"{t} → {v}" for t, v in readings]
+        )
 
-    for d in data_list:
-        page += f"<tr><td>{d['sensor']}</td><td>{d['date']}</td><td>{d['time']}</td><td>{d['value']}</td></tr>"
+        page += f"""
+        <tr>
+            <td>{sensor}</td>
+            <td>{date}</td>
+            <td>{readings_text}</td>
+            <td>{avg}</td>
+        </tr>
+        """
 
-        sensor = d["sensor"]
-        sums[sensor] = sums.get(sensor, 0) + d["value"]
-        counts[sensor] = counts.get(sensor, 0) + 1
-
-    page += "</table>"
-
-    # Averages
-    page += "<h2>Average per Sensor</h2><table border='1' cellpadding='5'>"
-    page += "<tr><th>Sensor</th><th>Average</th></tr>"
-
-    for sensor in sums:
-        avg = round(sums[sensor] / counts[sensor], 2)
-        page += f"<tr><td>{sensor}</td><td>{avg}</td></tr>"
-
-    page += "</table>"
+    page += """
+    </table>
+    </body>
+    </html>
+    """
 
     return page
 
