@@ -66,7 +66,7 @@ def homepage():
         values = [v for _, v in readings]
         avg = round(sum(values) / len(values), 2)
 
-        # Create rows for each time-value pair
+        # Add rows for each time-value pair
         for i in range(len(times)):
             # For the first row of each sensor, show sensor and date
             if i == 0:
@@ -76,7 +76,7 @@ def homepage():
                     <td rowspan="{len(times)}">{date}</td>
                     <td>{times[i]}</td>
                     <td>{values[i]}</td>
-                    {"<td rowspan='%d'>%s</td>" % (len(times), avg) if i == len(times) - 1 else ""}
+                    {"<td rowspan='%d'>%s</td>" % (len(times), avg) if i == len(times) - 1 else "<td></td>"}
                 </tr>
                 """
             else:
@@ -85,7 +85,7 @@ def homepage():
                 <tr>
                     <td>{times[i]}</td>
                     <td>{values[i]}</td>
-                    {"<td></td>" if i != len(times) - 1 else ""}
+                    <td></td> <!-- Empty cell for average -->
                 </tr>
                 """
 
