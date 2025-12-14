@@ -30,6 +30,7 @@ def homepage():
     page = """
     <html>
     <head>
+        <meta http-equiv="refresh" content="10"> <!-- auto-refresh every 10 seconds -->
         <style>
             table {
                 border-collapse: collapse;
@@ -44,9 +45,10 @@ def homepage():
                 background-color: #f2f2f2;
             }
         </style>
+        <title>Sensors Dashboard</title>
     </head>
     <body>
-    <h1 style="text-align:center;">Sensors Data (IT View)</h1>
+    <h1 style="text-align:center;">Sensors Data (Live Dashboard)</h1>
     <table>
         <tr>
             <th>Sensor</th>
@@ -58,7 +60,6 @@ def homepage():
     """
 
     for (sensor, date), readings in data_store.items():
-        # Calculate average and make sure it's a string
         avg = str(round(sum(v for _, v in readings) / len(readings), 2))
         rows = len(readings)
 
