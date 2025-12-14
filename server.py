@@ -7,7 +7,6 @@ app = Flask(__name__)
 # Value = list of (time, value)
 data_store = {}
 
-# Route to receive data from ESP32/fake sensors
 @app.route("/data", methods=["POST"])
 def receive_data():
     sensor_id = request.form.get("sensor_id")
@@ -26,7 +25,6 @@ def receive_data():
 
     return "OK", 200
 
-# Homepage to display the table
 @app.route("/")
 def homepage():
     page = """
@@ -60,7 +58,8 @@ def homepage():
     """
 
     for (sensor, date), readings in data_store.items():
-        avg = round(sum(v for _, v in readings) / len(readings), 2)
+        # Calculate average and make sure it's a string
+        avg = str(round(sum(v for _, v in readings) / len(readings), 2))
         rows = len(readings)
 
         # FIRST ROW: Sensor, Date, first time/value, Average
