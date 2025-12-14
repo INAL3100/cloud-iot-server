@@ -61,12 +61,12 @@ def homepage():
 
     # Iterate over each sensor's data
     for (sensor, date), readings in data_store.items():
-        # Extract time and value separately
+        # Values for this sensor
         times = [t for t, _ in readings]
         values = [v for _, v in readings]
         avg = round(sum(values) / len(values), 2)
 
-        # Add rows for each time-value pair
+        # Create rows for each time-value pair
         for i in range(len(times)):
             # For the first row of each sensor, show sensor and date
             if i == 0:
