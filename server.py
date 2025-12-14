@@ -7,6 +7,7 @@ app = Flask(__name__)
 # Value = list of (time, value)
 data_store = {}
 
+# Route to receive data from ESP32/fake sensors
 @app.route("/data", methods=["POST"])
 def receive_data():
     sensor_id = request.form.get("sensor_id")
@@ -25,7 +26,7 @@ def receive_data():
 
     return "OK", 200
 
-
+# Homepage to display the table
 @app.route("/")
 def homepage():
     page = """
@@ -34,8 +35,7 @@ def homepage():
         <style>
             table {
                 border-collapse: collapse;
-                margin-left: auto;
-                margin-right: auto;
+                margin: auto;
             }
             th, td {
                 border: 1px solid black;
@@ -59,35 +59,30 @@ def homepage():
         </tr>
     """
 
-    # Iterate over each sensor's data
     for (sensor, date), readings in data_store.items():
-        # Values for this sensor
-        times = [t for t, _ in readings]
-        values = [v for _, v in readings]
-        avg = round(sum(values) / len(values), 2)
+        avg = round(sum(v for _, v in readings) / len(readings), 2)
+        rows = len(readings)
 
-        # Add rows for each time-value pair
-        for i in range(len(times)):
-            # For the first row of each sensor, show sensor and date
-            if i == 0:
-                page += f"""
-                <tr>
-                    <td rowspan="{len(times)}">{sensor}</td>
-                    <td rowspan="{len(times)}">{date}</td>
-                    <td>{times[i]}</td>
-                    <td>{values[i]}</td>
-                    {"<td rowspan='%d'>%s</td>" % (len(times), avg) if i == len(times) - 1 else "<td></td>"}
-                </tr>
-                """
-            else:
-                # For subsequent rows, show only time and reading
-                page += f"""
-                <tr>
-                    <td>{times[i]}</td>
-                    <td>{values[i]}</td>
-                    <td></td> <!-- Empty cell for average -->
-                </tr>
-                """
+        # FIRST ROW: Sensor, Date, first time/value, Average
+        first_time, first_value = readings[0]
+        page += f"""
+        <tr>
+            <td rowspan="{rows}">{sensor}</td>
+            <td rowspan="{rows}">{date}</td>
+            <td>{first_time}</td>
+            <td>{first_value}</td>
+            <td rowspan="{rows}">{avg}</td>
+        </tr>
+        """
+
+        # Remaining rows: only time/value
+        for time_, value in readings[1:]:
+            page += f"""
+            <tr>
+                <td>{time_}</td>
+                <td>{value}</td>
+            </tr>
+            """
 
     page += """
     </table>
@@ -96,7 +91,6 @@ def homepage():
     """
 
     return page
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
