@@ -45,12 +45,12 @@ def homepage():
         </style>
     </head>
     <body>
-    <h1 style="text-align:center;">Sensor Data (IT View)</h1>
+    <h1 style="text-align:center;">Sensors Data (IT View)</h1>
     <table>
         <tr>
             <th>Sensor</th>
             <th>Date</th>
-            <th>Readings (Time → Value)</th>
+            <th>Readings (Time / Value)</th>
             <th>Average</th>
         </tr>
     """
