@@ -30,7 +30,7 @@ def homepage():
     page = """
     <html>
     <head>
-        <meta http-equiv="refresh" content="10"> <!-- auto-refresh every 10 seconds -->
+        <meta http-equiv="refresh" content="300"> <!-- auto-refresh every 300 seconds -->
         <style>
             table {
                 border-collapse: collapse;
