@@ -18,4 +18,4 @@ while True:
         print(sensor, "sent:", value)
 
     # 30 minutes (use 10 seconds for testing)
-    time.sleep(20)
+    time.sleep(2400)
