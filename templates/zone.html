@@ -27,17 +27,7 @@
 
     {% for sensor, readings in data.items() %}
         {% set avg = (readings | map(attribute=2) | sum) / (readings | length) %}
-        {% set prev_value = None %}
-        {% for date, time_, value in readings %}
-            {% if prev_value is not none and prev_value < 25 and value < 25 %}
-                {% set status = 'ON' %}
-            {% elif value < 25 %}
-                {% set status = 'ON' %}
-            {% elif value > 40 %}
-                {% set status = 'OFF' %}
-            {% else %}
-                {% set status = 'OFF' %}
-            {% endif %}
+        {% for date, time_, value, status in readings %}
             <tr>
                 <td class="center-text">{{ sensor }}</td>
                 <td class="center-text">{{ date }}</td>
@@ -54,7 +44,6 @@
 
                 <td class="center-text">{{ "%.2f"|format(avg) }}</td>
             </tr>
-            {% set prev_value = value %}
         {% endfor %}
     {% endfor %}
 </table>

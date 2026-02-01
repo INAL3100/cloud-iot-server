@@ -50,7 +50,10 @@ def receive_data():
     # -----------------------------
     # MACHINE LOGIC
     # ON if last two readings <25, OFF if >40
-    cursor.execute("SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1", (sensor_id,))
+    cursor.execute(
+        "SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1",
+        (sensor_id,)
+    )
     last = cursor.fetchone()
     last_value, last_status = last if last else (None, "OFF")
 

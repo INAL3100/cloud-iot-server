@@ -2,7 +2,7 @@ import requests
 import random
 import time
 
-URL = "https://cloud-iot-server.onrender.com/data"  # or your local Flask URL
+URL = "http://127.0.0.1:5000/data"  # change to your Render URL later
 sensors = ["SENSOR_1", "SENSOR_2", "SENSOR_3"]
 
 last_value = {s: None for s in sensors}
@@ -10,9 +10,9 @@ last_status = {s: "OFF" for s in sensors}
 
 while True:
     for sensor in sensors:
-        value = round(random.uniform(20, 45), 1)  # simulate realistic range
+        value = round(random.uniform(20, 45), 1)
 
-        # Simulate machine logic locally
+        # Local machine logic simulation
         if value > 40:
             status = "OFF"
         elif last_value[sensor] is not None and last_value[sensor] < 25 and value < 25:
