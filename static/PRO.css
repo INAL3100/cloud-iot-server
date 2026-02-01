@@ -103,10 +103,6 @@ td {
     background-color: #4CAF50;
 }
 
-.machine-status.off {
-    background-color: #f44336;
-}
-
 /* ---------- CENTER TEXT ---------- */
 .center-text {
     text-align: center;
