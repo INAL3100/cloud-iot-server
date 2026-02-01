@@ -2,7 +2,7 @@ import requests
 import random
 import time
 
-URL = "http://127.0.0.1:5000/data"  # change to your Render URL later
+URL = "https://cloud-iot-server.onrender.com"  # change to your Render URL later
 sensors = ["SENSOR_1", "SENSOR_2", "SENSOR_3"]
 
 last_value = {s: None for s in sensors}
