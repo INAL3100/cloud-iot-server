@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ zone }} - TOSYALI ALGERIA</title>
+    <link rel="stylesheet" href="/static/PRO.css">
+</head>
+<body>
+
+<h1 class="title">TOSYALI ALGERIA</h1>
+<h2 class="subtitle">{{ zone }}</h2>
+
+<form method="get" class="date-form">
+    <label>Select Date:</label>
+    <input type="date" name="date" value="{{ selected_date }}">
+    <button type="submit">Apply</button>
+</form>
+
+<table>
+    <tr>
+        <th>Sensor ID</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Machine Status</th>
+        <th>Value</th>
+        <th>Daily Avg</th>
+    </tr>
+
+    {% for sensor, readings in data.items() %}
+        {% set avg = (readings | map(attribute=2) | sum) / (readings | length) %}
+        {% set prev_value = None %}
+        {% for date, time_, value in readings %}
+            {% if prev_value is not none and prev_value < 25 and value < 25 %}
+                {% set status = 'ON' %}
+            {% elif value < 25 %}
+                {% set status = 'ON' %}
+            {% elif value > 40 %}
+                {% set status = 'OFF' %}
+            {% else %}
+                {% set status = 'OFF' %}
+            {% endif %}
+            <tr>
+                <td class="center-text">{{ sensor }}</td>
+                <td class="center-text">{{ date }}</td>
+                <td class="center-text">{{ time_ }}</td>
+                <td class="machine-status {% if status == 'ON' %}on{% else %}off{% endif %}">{{ status }}</td>
+
+                {% if value > 30 %}
+                    <td class="value high center-text">{{ value }}</td>
+                {% elif value >= 25 %}
+                    <td class="value medium center-text">{{ value }}</td>
+                {% else %}
+                    <td class="value low center-text">{{ value }}</td>
+                {% endif %}
+
+                <td class="center-text">{{ "%.2f"|format(avg) }}</td>
+            </tr>
+            {% set prev_value = value %}
+        {% endfor %}
+    {% endfor %}
+</table>
+
+</body>
+</html>

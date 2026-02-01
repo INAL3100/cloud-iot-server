@@ -1,0 +1,131 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    color: white;
+}
+
+/* ---------- HEADER ---------- */
+.title {
+    text-align: center;
+    font-size: 48px;
+    font-weight: 700;
+    margin-top: 40px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 32px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+/* ---------- HOME DASHBOARD ---------- */
+.zones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    max-width: 1000px;
+    margin: 120px auto;
+}
+
+.zone-box {
+    height: 200px;
+    background: linear-gradient(145deg, #111827, #1f2937);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 600;
+    color: #e5e7eb;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.zone-box:hover {
+    transform: scale(1.05);
+    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+    box-shadow: 0 30px 80px rgba(37,99,235,0.6);
+}
+
+/* ---------- TABLE ---------- */
+table {
+    width: 95%;
+    margin: auto;
+    border-collapse: collapse;
+    background: #020617;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+th {
+    background: #1d4ed8;
+    padding: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #1f2937;
+}
+
+/* ---------- VALUE COLORS ---------- */
+.value.low {
+    background: rgba(220, 38, 38, 0.35);
+}
+
+.value.medium {
+    background: rgba(245, 158, 11, 0.35);
+}
+
+.value.high {
+    background: rgba(34, 197, 94, 0.35);
+}
+
+/* ---------- MACHINE STATUS ---------- */
+.machine-status {
+    text-align: center;
+    font-weight: bold;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.machine-status.on {
+    background-color: #4CAF50;
+}
+
+.machine-status.off {
+    background-color: #f44336;
+}
+
+/* ---------- CENTER TEXT ---------- */
+.center-text {
+    text-align: center;
+}
+
+/* ---------- DATE FORM ---------- */
+.date-form {
+    text-align: center;
+    margin: 30px;
+}
+
+input, button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}

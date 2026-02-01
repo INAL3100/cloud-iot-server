@@ -2,20 +2,28 @@ import requests
 import random
 import time
 
-URL = "https://cloud-iot-server.onrender.com/data"
-
+URL = "https://cloud-iot-server.onrender.com/data"  # or your local Flask URL
 sensors = ["SENSOR_1", "SENSOR_2", "SENSOR_3"]
+
+last_value = {s: None for s in sensors}
+last_status = {s: "OFF" for s in sensors}
 
 while True:
     for sensor in sensors:
-        value = round(random.uniform(20, 35), 1)
+        value = round(random.uniform(20, 45), 1)  # simulate realistic range
 
-        response = requests.post(URL, data={
-            "sensor_id": sensor,
-            "value": value
-        })
+        # Simulate machine logic locally
+        if value > 40:
+            status = "OFF"
+        elif last_value[sensor] is not None and last_value[sensor] < 25 and value < 25:
+            status = "ON"
+        else:
+            status = last_status[sensor]
 
-        print(sensor, "sent:", value)
+        last_value[sensor] = value
+        last_status[sensor] = status
 
-    # 30 minutes (use 10 seconds for testing)
-    time.sleep(60)
+        requests.post(URL, data={"sensor_id": sensor, "value": value})
+        print(sensor, value, status)
+
+    time.sleep(30)

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TOSYALI ALGERIA</title>
+    <link rel="stylesheet" href="/static/PRO.css">
+</head>
+<body>
+
+<h1 class="title">TOSYALI ALGERIA</h1>
+
+<div class="zones">
+    {% for zone in zones %}
+        <a href="/zone/{{ zone }}" class="zone-box">
+            {{ zone }}
+        </a>
+    {% endfor %}
+</div>
+
+</body>
+</html>
