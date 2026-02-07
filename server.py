@@ -85,7 +85,7 @@ def create_demo_users():
 
     conn.commit()
 
-# create_demo_users()  # ← RUN ONCE, THEN COMMENT
+create_demo_users()  # ← RUN ONCE, THEN COMMENT
 
 # -----------------------------
 # HELPERS
