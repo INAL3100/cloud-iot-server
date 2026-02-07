@@ -9,10 +9,9 @@ app.secret_key = "nexa_sens_secret"
 API_KEY = "NEXA_SENS_DEVICE_KEY"
 
 # -----------------------------
-# ZONES
+# ZONES & SENSORS
 # -----------------------------
 ZONES = ["Zone 1", "Zone 2", "Zone 3"]
-
 SENSOR_ZONES = {
     "SENSOR_1": "Zone 1",
     "SENSOR_2": "Zone 2",
@@ -25,6 +24,7 @@ SENSOR_ZONES = {
 conn = sqlite3.connect("sensors.db", check_same_thread=False)
 cursor = conn.cursor()
 
+# Readings table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS readings (
 )
 """)
 
+# Users table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,17 +47,17 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """)
 
+# User-zone mapping
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS user_zones (
     user_id INTEGER,
     zone TEXT
 )
 """)
-
 conn.commit()
 
 # -----------------------------
-# DEMO USERS (RUN ONCE)
+# CREATE DEMO USERS (RUN ONCE)
 # -----------------------------
 def create_demo_users():
     users = [
@@ -71,7 +72,6 @@ def create_demo_users():
             "INSERT OR IGNORE INTO users VALUES (NULL, ?, ?, ?)",
             (u, generate_password_hash(p), r)
         )
-
     conn.commit()
 
     cursor.execute("SELECT id, username FROM users")
@@ -82,10 +82,9 @@ def create_demo_users():
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 2"))
         elif uname == "eng3":
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
-
     conn.commit()
 
-create_demo_users()  # ← RUN ONCE, THEN COMMENT
+create_demo_users()  # ← run once, then comment out if needed
 
 # -----------------------------
 # HELPERS
@@ -95,18 +94,18 @@ def get_user_zones(user_id):
     return [z[0] for z in cursor.fetchall()]
 
 # -----------------------------
-# LOGIN
+# LOGIN / LOGOUT
 # -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        u = request.form["username"]
-        p = request.form["password"]
+        username = request.form["username"]
+        password = request.form["password"]
 
-        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
+        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (username,))
         user = cursor.fetchone()
 
-        if user and check_password_hash(user[1], p):
+        if user and check_password_hash(user[1], password):
             session["user_id"] = user[0]
             session["role"] = user[2]
             return redirect("/")
@@ -153,49 +152,3 @@ def receive_data():
         "INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)",
         (zone, sensor_id, date, time_, value, status)
     )
-    conn.commit()
-
-    return "OK", 200
-
-# -----------------------------
-# DASHBOARD
-# -----------------------------
-@app.route("/")
-def index():
-    if "user_id" not in session:
-        return redirect("/login")
-
-    if session["role"] == "manager":
-        zones = ZONES
-    else:
-        zones = get_user_zones(session["user_id"])
-
-    return render_template("index.html", zones=zones)
-
-@app.route("/zone/<zone_name>")
-def zone_page(zone_name):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    if session["role"] != "manager":
-        if zone_name not in get_user_zones(session["user_id"]):
-            return "Access denied", 403
-
-    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
-
-    cursor.execute("""
-        SELECT sensor_id, date, time, value, machine_status
-        FROM readings
-        WHERE zone=? AND date=?
-        ORDER BY time
-    """, (zone_name, selected_date))
-
-    rows = cursor.fetchall()
-    data = {}
-    for s, d, t, v, m in rows:
-        data.setdefault(s, []).append((d, t, v, m))
-
-    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date)
-
-if __name__ == "__main__":
-    app.run(debug=True)

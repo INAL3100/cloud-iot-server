@@ -9,13 +9,14 @@
 <div class="top-bar">
     <span class="brand">NEXA SENS</span>
     <div class="top-actions">
+        <span class="welcome">Welcome, {{ username }} ({{ role.capitalize() }})</span>
         <a href="/logout" class="btn">Logout</a>
     </div>
 </div>
 
 <h1 class="title">Zones</h1>
 
-<div class="zones {{ 'single' if zones|length == 1 else '' }}">
+<div class="zones {% if zones|length == 1 %}single{% endif %}">
     {% for zone in zones %}
         <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
     {% endfor %}

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ zone }}</title>
+    <title>{{ zone }} - NEXA SENS</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
@@ -9,6 +9,7 @@
 <div class="top-bar">
     <span class="brand">NEXA SENS</span>
     <div class="top-actions">
+        <span class="welcome">Welcome, {{ username }} ({{ role.capitalize() }})</span>
         <a href="/" class="btn">Accueil</a>
         <a href="/logout" class="btn danger">Logout</a>
     </div>
