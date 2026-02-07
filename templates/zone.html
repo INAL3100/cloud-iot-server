@@ -6,7 +6,14 @@
 </head>
 <body>
 
-<h1 class="title">NEXA SENS</h1>
+<div class="top-bar">
+    <span class="brand">NEXA SENS</span>
+    <div class="top-actions">
+        <a href="/" class="btn">Accueil</a>
+        <a href="/logout" class="btn danger">Logout</a>
+    </div>
+</div>
+
 <h2 class="subtitle">{{ zone }}</h2>
 
 <form method="get" class="date-form">
@@ -16,17 +23,21 @@
 
 <table>
 <tr>
-    <th>Sensor</th><th>Date</th><th>Time</th><th>Status</th><th>Value</th>
+    <th>Sensor</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Status</th>
+    <th>Value</th>
 </tr>
 
 {% for sensor, rows in data.items() %}
     {% for d, t, v, s in rows %}
     <tr>
-        <td>{{ sensor }}</td>
-        <td>{{ d }}</td>
-        <td>{{ t }}</td>
+        <td class="center-text">{{ sensor }}</td>
+        <td class="center-text">{{ d }}</td>
+        <td class="center-text">{{ t }}</td>
         <td class="machine-status {{ 'on' if s=='ON' else 'off' }}">{{ s }}</td>
-        <td>{{ v }}</td>
+        <td class="center-text">{{ v }}</td>
     </tr>
     {% endfor %}
 {% endfor %}

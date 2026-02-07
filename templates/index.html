@@ -6,9 +6,16 @@
 </head>
 <body>
 
-<h1 class="title">NEXA SENS</h1>
+<div class="top-bar">
+    <span class="brand">NEXA SENS</span>
+    <div class="top-actions">
+        <a href="/logout" class="btn">Logout</a>
+    </div>
+</div>
 
-<div class="zones">
+<h1 class="title">Zones</h1>
+
+<div class="zones {{ 'single' if zones|length == 1 else '' }}">
     {% for zone in zones %}
         <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
     {% endfor %}
