@@ -1,51 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ zone }} - TOSYALI ALGERIA</title>
+    <title>{{ zone }}</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
 
-<h1 class="title">TOSYALI ALGERIA</h1>
+<h1 class="title">NEXA SENS</h1>
 <h2 class="subtitle">{{ zone }}</h2>
 
 <form method="get" class="date-form">
-    <label>Select Date:</label>
     <input type="date" name="date" value="{{ selected_date }}">
-    <button type="submit">Apply</button>
+    <button>Apply</button>
 </form>
 
 <table>
+<tr>
+    <th>Sensor</th><th>Date</th><th>Time</th><th>Status</th><th>Value</th>
+</tr>
+
+{% for sensor, rows in data.items() %}
+    {% for d, t, v, s in rows %}
     <tr>
-        <th>Sensor ID</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Machine Status</th>
-        <th>Value</th>
-        <th>Daily Avg</th>
+        <td>{{ sensor }}</td>
+        <td>{{ d }}</td>
+        <td>{{ t }}</td>
+        <td class="machine-status {{ 'on' if s=='ON' else 'off' }}">{{ s }}</td>
+        <td>{{ v }}</td>
     </tr>
-
-    {% for sensor, readings in data.items() %}
-        {% set avg = (readings | map(attribute=2) | sum) / (readings | length) %}
-        {% for date, time_, value, status in readings %}
-            <tr>
-                <td class="center-text">{{ sensor }}</td>
-                <td class="center-text">{{ date }}</td>
-                <td class="center-text">{{ time_ }}</td>
-                <td class="machine-status {% if status == 'ON' %}on{% else %}off{% endif %}">{{ status }}</td>
-
-                {% if value > 30 %}
-                    <td class="value high center-text">{{ value }}</td>
-                {% elif value >= 25 %}
-                    <td class="value medium center-text">{{ value }}</td>
-                {% else %}
-                    <td class="value low center-text">{{ value }}</td>
-                {% endif %}
-
-                <td class="center-text">{{ "%.2f"|format(avg) }}</td>
-            </tr>
-        {% endfor %}
     {% endfor %}
+{% endfor %}
 </table>
 
 </body>
