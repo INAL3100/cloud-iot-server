@@ -1,26 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/PRO.css">
+    <meta charset="UTF-8">
+    <title>{{ zone }} Data</title>
+    <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
+    <header>
+        <h1>{{ zone }} Dashboard</h1>
+        <div>
+            <a href="/">Back to zones</a>
+            <span>User: {{ session.username }}</span>
+            <a href="/logout">Logout</a>
+        </div>
+    </header>
 
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="brand">NEXA SENS</div>
-    <a href="/index" class="nav-link">Accueil</a>
-  </div>
-  <div class="topbar-right">
-    <div class="user-menu">{{ session['username'] }}
-      <div class="dropdown">
-        <a href="/settings">Settings</a>
-        <a href="/logout">Logout</a>
-      </div>
-    </div>
-  </div>
-</header>
+    <main>
+        <form method="get">
+            <label for="date">Select Date:</label>
+            <input type="date" id="date" name="date" value="{{ selected_date }}">
+            <button type="submit">Go</button>
+        </form>
 
-<h2 class="page-title">{{ zone.name }}</h2>
-
+        {% for sensor, records in data.items() %}
+        <section>
+            <h3>{{ sensor }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for date, time, value, status in records %}
+                    <tr>
+                        <td>{{ date }}</td>
+                        <td>{{ time }}</td>
+                        <td>{{ value }}</td>
+                        <td>{{ status }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endfor %}
+    </main>
 </body>
 </html>

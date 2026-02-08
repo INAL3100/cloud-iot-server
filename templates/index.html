@@ -1,66 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/PRO.css">
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
+    <header>
+        <h1>IoT Dashboard</h1>
+        <div>
+            <span>User: {{ session.username }}</span>
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </header>
 
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="brand">NEXA SENS</div>
-    <a href="/index" class="nav-link">Accueil</a>
-  </div>
-
-  <div class="topbar-right">
-    <div class="user-menu">
-      {{ session['username'] }}
-      <div class="dropdown">
-        <a href="/settings">Settings</a>
-        <a href="/logout">Logout</a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<div class="zones">
-  {% for z in zones %}
-    <a class="zone" href="/zone/{{ z.id }}">{{ z.name }}</a>
-  {% endfor %}
-</div>
-
-<div class="table-wrap">
-<table>
-  <thead>
-    <tr>
-      <th>Sensor ID</th>
-      <th>Time</th>
-      <th>Machine Status</th>
-      <th>Value</th>
-    </tr>
-  </thead>
-  <tbody id="data">
-    <tr>
-      <td>S1</td>
-      <td id="time-S1">--</td>
-      <td>ON</td>
-      <td id="val-S1">--</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-<script>
-setInterval(() => {
-  fetch("/api/readings")
-    .then(r => r.json())
-    .then(d => {
-      for (let s in d) {
-        document.getElementById("val-"+s).innerText = d[s].value;
-        document.getElementById("time-"+s).innerText = d[s].time;
-      }
-    });
-}, 2000);
-</script>
-
+    <main>
+        <h2>Zones</h2>
+        <ul>
+        {% for zone in zones %}
+            <li><a href="/zone/{{ zone }}">{{ zone }}</a></li>
+        {% endfor %}
+        </ul>
+    </main>
 </body>
 </html>

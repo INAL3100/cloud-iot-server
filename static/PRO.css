@@ -1,85 +1,62 @@
-* { box-sizing: border-box; font-family: Arial; }
-
-body { margin: 0; background: #f4f6f9; }
-
-/* HEADER */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  background: #0f172a;
-  color: white;
-  padding: 14px 24px;
-}
-.topbar-left { display: flex; gap: 20px; align-items: center; }
-.brand { font-size: 20px; font-weight: bold; }
-.nav-link { color: #cbd5e1; text-decoration: none; }
-.nav-link:hover { color: #3b82f6; }
-
-.user-menu { position: relative; cursor: pointer; }
-.dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  background: white;
-}
-.user-menu:hover .dropdown { display: block; }
-.dropdown a {
-  display: block;
-  padding: 10px;
-  color: black;
-  text-decoration: none;
-}
-.dropdown a:hover { background: #e5e7eb; }
-
-/* ZONES */
-.zones {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 24px;
-}
-.zone {
-  background: white;
-  padding: 20px;
-  border-left: 6px solid #3b82f6;
-  border-radius: 8px;
-  text-decoration: none;
-  color: black;
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f5f5;
+    color: #333;
 }
 
-/* TABLE */
-.table-wrap { padding: 24px; }
+header {
+    background: #007acc;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+main {
+    padding: 20px;
+}
+
+h2, h3 {
+    margin-top: 20px;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul li {
+    margin-bottom: 10px;
+}
+
 table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-thead {
-  background: #1f2937;
-  color: white;
-}
-th, td {
-  padding: 12px;
-  text-align: center;
-}
-tbody tr:nth-child(even) {
-  background: #f1f5f9;
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 10px;
 }
 
-/* FORMS */
-.center { display: flex; justify-content: center; align-items: center; height: 100vh; }
-.card {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
+table, th, td {
+    border: 1px solid #ccc;
 }
-input, button {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
+
+th, td {
+    padding: 5px;
+    text-align: left;
 }
-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
+
+.error {
+    color: red;
 }
