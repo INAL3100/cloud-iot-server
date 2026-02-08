@@ -83,7 +83,7 @@ def create_demo_users():
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
     conn.commit()
 
-create_demo_users()  # run once then comment
+# create_demo_users()  # run once then comment out
 
 # -----------------------------
 # HELPERS
