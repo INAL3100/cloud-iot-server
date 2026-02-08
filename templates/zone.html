@@ -1,76 +1,46 @@
 <!DOCTYPE html>
 <html>
-<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/PRO.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ zone }} - Nexa Sensors</title>
+    <title>{{ zone }} - Nexa Sens</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-    <header class="topbar">
-        <div class="brand">Nexa Sensors</div>
-        <nav class="top-links">
-            <a href="/" class="home-link">Accueil</a>
-        </nav>
-        <div class="user-menu">
-            <button type="button" class="user-button">{{ session.get('username') }} ▾</button>
-            <div class="dropdown">
-                <a href="/settings">Settings</a>
-                <a href="/logout">Logout</a>
-            </div>
+<header>
+    <div class="logo">Nexa Sensors</div>
+    <a href="/" class="acceuil-btn">Accueil</a>
+    <div class="user-menu">
+        <span>{{ session.get('username') }}</span>
+        <div class="dropdown">
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
         </div>
-    </header>
-
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="brand">NEXA SENS</div>
-    <a href="/index" class="nav-link">Accueil</a>
-  </div>
-  <div class="topbar-right">
-    <div class="user-menu">{{ session['username'] }}
-      <div class="dropdown">
-        <a href="/settings">Settings</a>
-        <a href="/logout">Logout</a>
-      </div>
     </div>
-  </div>
 </header>
-    <main class="page-wrap">
-        <h1>{{ zone }}</h1>
 
-<h2 class="page-title">{{ zone.name }}</h2>
-        <form method="get" class="date-form">
-            <label for="date">Date</label>
-            <input id="date" type="date" name="date" value="{{ selected_date }}">
-            <button type="submit">Apply</button>
-        </form>
+<h1>{{ zone }}</h1>
 
-        <div class="table-wrap">
-            <table>
-                <tr>
-                    <th>Sensor</th>
-                    <th>Time</th>
-                    <th>Value</th>
-                    <th>Machine Status</th>
-                </tr>
-                {% for sensor, readings in data.items() %}
-                    {% for date, time_, value, status in readings %}
-                    <tr>
-                        <td>{{ sensor }}</td>
-                        <td>{{ time_ }}</td>
-                        <td>{{ value }}</td>
-                        <td class="machine-status {% if status == 'ON' %}on{% else %}off{% endif %}">{{ status }}</td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="4">No readings found for this date.</td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </div>
-    </main>
+<form method="get">
+    <input type="date" name="date" value="{{ selected_date }}">
+    <button type="submit">Apply</button>
+</form>
+
+<table>
+<tr>
+    <th>Sensor</th>
+    <th>Time</th>
+    <th>Value</th>
+    <th>Machine Status</th>
+</tr>
+{% for sensor, readings in data.items() %}
+    {% for date, time_, value, status in readings %}
+    <tr>
+        <td>{{ sensor }}</td>
+        <td>{{ time_ }}</td>
+        <td>{{ value }}</td>
+        <td class="machine-status {% if status=='ON' %}on{% else %}off{% endif %}">{{ status }}</td>
+    </tr>
+    {% endfor %}
+{% endfor %}
+</table>
 </body>
 </html>

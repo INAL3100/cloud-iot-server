@@ -1,40 +1,20 @@
 <!DOCTYPE html>
 <html>
-<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/PRO.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexa Sensors - Login</title>
+    <title>Nexa Sens Login</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
-<body class="center">
-<body class="login-page">
-    <main class="login-container">
-        <section class="login-box">
-            <h1>Nexa Sensors</h1>
-            <p class="subtitle">Factory IoT Monitoring</p>
-
-<form method="post" class="card">
-  <h2>Login</h2>
-  <input name="username" placeholder="Username" required>
-  <input type="password" name="password" placeholder="Password" required>
-  <button>Login</button>
-</form>
-            {% if error %}
-                <p class="error">{{ error }}</p>
-            {% endif %}
-
-            <form method="POST" class="stack-form">
-                <label for="username">Username</label>
-                <input id="username" type="text" name="username" placeholder="Enter username" required>
-
-                <label for="password">Password</label>
-                <input id="password" type="password" name="password" placeholder="Enter password" required>
-
-                <button type="submit">Login</button>
-            </form>
-        </section>
-    </main>
+<body>
+<div class="login-container">
+    <div class="login-box">
+        <h1>Nexa Sens</h1>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</div>
 </body>
 </html>

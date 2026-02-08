@@ -1,66 +1,29 @@
 <!DOCTYPE html>
 <html>
-<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/PRO.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexa Sensors - Settings</title>
+    <title>Settings</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-    <header class="topbar">
-        <div class="brand">Nexa Sensors</div>
-        <nav class="top-links">
-            <a href="/" class="home-link">Accueil</a>
-        </nav>
-        <div class="user-menu">
-            <button type="button" class="user-button">{{ session.get('username') }} ▾</button>
-            <div class="dropdown">
-                <a href="/settings">Settings</a>
-                <a href="/logout">Logout</a>
-            </div>
+<header>
+    <div class="logo">Nexa Sensors</div>
+    <a href="/" class="acceuil-btn">Accueil</a>
+    <div class="user-menu">
+        <span>{{ session.get('username') }}</span>
+        <div class="dropdown">
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
         </div>
-    </header>
-
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="brand">NEXA SENS</div>
-    <a href="/index" class="nav-link">Accueil</a>
-  </div>
-  <div class="topbar-right">
-    <div class="user-menu">{{ session['username'] }}
-      <div class="dropdown">
-        <a href="/settings">Settings</a>
-        <a href="/logout">Logout</a>
-      </div>
     </div>
-  </div>
 </header>
-    <main class="page-wrap">
-        <section class="card">
-            <h1>Account Settings</h1>
-            <p>Update your username and password.</p>
 
-<form method="post" class="card">
-  <h2>Change Password</h2>
-  <input type="password" name="password" required>
-  <button>Save</button>
-</form>
-            {% if message %}
-                <p class="success">{{ message }}</p>
-            {% endif %}
-
-            <form method="POST" class="stack-form settings-form">
-                <label for="username">New Username</label>
-                <input id="username" type="text" name="username" required>
-
-                <label for="password">New Password</label>
-                <input id="password" type="password" name="password" required>
-
-                <button type="submit">Save Changes</button>
-            </form>
-        </section>
-    </main>
+<div class="content">
+    <h2>Change Username / Password</h2>
+    <form method="POST" class="settings-form">
+        <input type="text" name="username" placeholder="New Username" required>
+        <input type="password" name="password" placeholder="New Password" required>
+        <button type="submit">Save Changes</button>
+    </form>
+</div>
 </body>
 </html>

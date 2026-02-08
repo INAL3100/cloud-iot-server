@@ -1,94 +1,27 @@
 <!DOCTYPE html>
 <html>
-<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/PRO.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexa Sensors - Dashboard</title>
+    <title>Nexa Sens Dashboard</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-    <header class="topbar">
-        <div class="brand">Nexa Sensors</div>
-        <nav class="top-links">
-            <a href="/" class="home-link">Accueil</a>
-        </nav>
-        <div class="user-menu">
-            <button type="button" class="user-button">{{ session.get('username') }} ▾</button>
-            <div class="dropdown">
-                <a href="/settings">Settings</a>
-                <a href="/logout">Logout</a>
-            </div>
-        </div>
-    </header>
-
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="brand">NEXA SENS</div>
-    <a href="/index" class="nav-link">Accueil</a>
-  </div>
-
-  <div class="topbar-right">
+<header>
+    <div class="logo">Nexa Sensors</div>
+    <a href="/" class="acceuil-btn">Accueil</a>
     <div class="user-menu">
-      {{ session['username'] }}
-      <div class="dropdown">
-        <a href="/settings">Settings</a>
-        <a href="/logout">Logout</a>
-      </div>
+        <span>{{ session.get('username') }}</span>
+        <div class="dropdown">
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
+        </div>
     </div>
-  </div>
 </header>
 
+<h1 class="title">Dashboard</h1>
 <div class="zones">
-  {% for z in zones %}
-    <a class="zone" href="/zone/{{ z.id }}">{{ z.name }}</a>
-  {% endfor %}
+    {% for zone in zones %}
+        <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
+    {% endfor %}
 </div>
-
-<div class="table-wrap">
-<table>
-  <thead>
-    <tr>
-      <th>Sensor ID</th>
-      <th>Time</th>
-      <th>Machine Status</th>
-      <th>Value</th>
-    </tr>
-  </thead>
-  <tbody id="data">
-    <tr>
-      <td>S1</td>
-      <td id="time-S1">--</td>
-      <td>ON</td>
-      <td id="val-S1">--</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-<script>
-setInterval(() => {
-  fetch("/api/readings")
-    .then(r => r.json())
-    .then(d => {
-      for (let s in d) {
-        document.getElementById("val-"+s).innerText = d[s].value;
-        document.getElementById("time-"+s).innerText = d[s].time;
-      }
-    });
-}, 2000);
-</script>
-
-    <main class="page-wrap">
-        <h1>Dashboard Zones</h1>
-        <div class="zones">
-            {% for zone in zones %}
-                <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
-            {% else %}
-                <p>No zone assigned yet.</p>
-            {% endfor %}
-        </div>
-    </main>
 </body>
 </html>

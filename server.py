@@ -1,33 +1,9 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, request, render_template, redirect, session
 from datetime import datetime
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-import paho.mqtt.client as mqtt
-import threading, time
-
-from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
-
-DB = "database.db"
-
-# ---------- DB ----------
-def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-# ---------- AUTH ----------
-def login_required(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if "user_id" not in session:
-            return redirect("/login")
-        return f(*args, **kwargs)
-    return wrap
-
-# ---------- ROUTES ----------
 app.secret_key = "nexa_sens_secret"
 
 API_KEY = "NEXA_SENS_DEVICE_KEY"
@@ -36,6 +12,7 @@ API_KEY = "NEXA_SENS_DEVICE_KEY"
 # ZONES & SENSOR MAPPING
 # -----------------------------
 ZONES = ["Zone 1", "Zone 2", "Zone 3"]
+
 SENSOR_ZONES = {
     "SENSOR_1": "Zone 1",
     "SENSOR_2": "Zone 2",
@@ -48,59 +25,33 @@ SENSOR_ZONES = {
 conn = sqlite3.connect("sensors.db", check_same_thread=False)
 cursor = conn.cursor()
 
-cursor.execute(
-    """
-    CREATE TABLE IF NOT EXISTS readings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        zone TEXT,
-        sensor_id TEXT,
-        date TEXT,
-        time TEXT,
-        value REAL,
-        machine_status TEXT
-    )
-    """
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS readings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    zone TEXT,
+    sensor_id TEXT,
+    date TEXT,
+    time TEXT,
+    value REAL,
+    machine_status TEXT
 )
+""")
 
-cursor.execute(
-    """
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT,
-        role TEXT
-    )
-    """
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    role TEXT
 )
+""")
 
-cursor.execute(
-    """
-    CREATE TABLE IF NOT EXISTS user_zones (
-        user_id INTEGER,
-        zone TEXT
-    )
-    """
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS user_zones (
+    user_id INTEGER,
+    zone TEXT
 )
-
-# Keep user-zone links unique
-cursor.execute(
-    """
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_zone_unique
-    ON user_zones(user_id, zone)
-    """
-)
-
-# Remove old duplicated rows
-cursor.execute(
-    """
-    DELETE FROM user_zones
-    WHERE rowid NOT IN (
-        SELECT MIN(rowid)
-        FROM user_zones
-        GROUP BY user_id, zone
-    )
-    """
-)
+""")
 
 conn.commit()
 
@@ -115,42 +66,31 @@ def create_demo_users():
         ("eng3", "1234", "engineer"),
     ]
 
-    for username, plain_password, role in users:
+    for u, p, r in users:
         cursor.execute(
             "INSERT OR IGNORE INTO users VALUES (NULL, ?, ?, ?)",
-            (username, generate_password_hash(plain_password), role),
+            (u, generate_password_hash(p), r)
         )
-
     conn.commit()
 
     cursor.execute("SELECT id, username FROM users")
-    for user_id, username in cursor.fetchall():
-        if username == "eng1":
-            cursor.execute(
-                "INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (user_id, "Zone 1")
-            )
-        elif username == "eng2":
-            cursor.execute(
-                "INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (user_id, "Zone 2")
-            )
-        elif username == "eng3":
-            cursor.execute(
-                "INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (user_id, "Zone 3")
-            )
-
+    for uid, uname in cursor.fetchall():
+        if uname == "eng1":
+            cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 1"))
+        elif uname == "eng2":
+            cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 2"))
+        elif uname == "eng3":
+            cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
     conn.commit()
 
-create_demo_users()
+create_demo_users()  # run once then comment
 
 # -----------------------------
 # HELPERS
 # -----------------------------
 def get_user_zones(user_id):
-    """Return each assigned zone once, sorted by name."""
-    cursor.execute(
-        "SELECT DISTINCT zone FROM user_zones WHERE user_id=? ORDER BY zone", (user_id,)
-    )
-    return [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT DISTINCT zone FROM user_zones WHERE user_id=?", (user_id,))
+    return [z[0] for z in cursor.fetchall()]
 
 # -----------------------------
 # LOGIN / LOGOUT
@@ -158,20 +98,17 @@ def get_user_zones(user_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        cursor.execute("SELECT id, username, password, role FROM users WHERE username=?", (username,))
+        u = request.form["username"]
+        p = request.form["password"]
+        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
         user = cursor.fetchone()
 
-        if user and check_password_hash(user[2], password):
+        if user and check_password_hash(user[1], p):
             session["user_id"] = user[0]
-            session["username"] = user[1]
-            session["role"] = user[3]
-            return redirect("/index")
-
+            session["username"] = u
+            session["role"] = user[2]
+            return redirect("/")
         return render_template("login.html", error="Invalid credentials")
-
     return render_template("login.html")
 
 @app.route("/logout")
@@ -180,104 +117,27 @@ def logout():
     return redirect("/login")
 
 # -----------------------------
-# DASHBOARD
-# -----------------------------
-@app.route("/")
-@login_required
-def index():
-    if session["role"] == "manager":
-        zones = ZONES
-    else:
-        zones = get_user_zones(session["user_id"])
-
-    return render_template("index.html", zones=zones)
-
-@app.route("/zone/<zone_name>")
-@login_required
-def zone_page(zone_name):
-    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
-        return "Access denied", 403
-
-    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
-
-    cursor.execute(
-        """
-        SELECT sensor_id, date, time, value, machine_status
-        FROM readings
-        WHERE zone=? AND date=?
-        ORDER BY time
-        """,
-        (zone_name, selected_date),
-    )
-    rows = cursor.fetchall()
-
-    data = {}
-    for sensor_id, date, time_, value, machine_status in rows:
-        if sensor_id not in data:
-            data[sensor_id] = []
-        data[sensor_id].append((date, time_, value, machine_status))
-
-    return render_template(
-        "zone.html", zone=zone_name, data=data, selected_date=selected_date
-    )
-
-# -----------------------------
 # SETTINGS PAGE
 # -----------------------------
 @app.route("/settings", methods=["GET", "POST"])
-@login_required
 def settings():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    message = ""
     if request.method == "POST":
-        new_username = request.form["username"].strip()
-        new_password = request.form["password"]
+        new_username = request.form["username"]
+        new_password = generate_password_hash(request.form["password"])
+        cursor.execute(
+            "UPDATE users SET username=?, password=? WHERE id=?",
+            (new_username, new_password, session["user_id"])
+        )
+        conn.commit()
+        session["username"] = new_username
+        message = "Changes saved successfully"
+        return redirect("/")
 
-        if not new_username or not new_password:
-            return render_template(
-                "settings.html", message="Username and password are required."
-            )
-
-        try:
-            cursor.execute(
-                "UPDATE users SET username=?, password=? WHERE id=?",
-                (new_username, generate_password_hash(new_password), session["user_id"]),
-            )
-            conn.commit()
-            session["username"] = new_username
-            return render_template("settings.html", message="Changes saved successfully.")
-        except sqlite3.IntegrityError:
-            return render_template(
-                "settings.html", message="That username is already in use."
-            )
-
-    return render_template("settings.html", message="")
-
-# ---------- LIVE DATA ----------
-latest_data = {}
-
-@app.route("/api/readings")
-@login_required
-def api_readings():
-    return jsonify(latest_data)
-
-# ---------- MQTT ----------
-def on_message(client, userdata, msg):
-    payload = msg.payload.decode()
-    sensor, value = payload.split(",")
-
-    latest_data[sensor] = {
-        "value": value,
-        "time": time.strftime("%H:%M:%S"),
-        "status": "ON"
-    }
-
-def mqtt_loop():
-    client = mqtt.Client()
-    client.on_message = on_message
-    client.connect("localhost", 1883)
-    client.subscribe("nexa/sensors/#")
-    client.loop_forever()
-
-threading.Thread(target=mqtt_loop, daemon=True).start()
+    return render_template("settings.html", message=message)
 
 # -----------------------------
 # RECEIVE SENSOR DATA
@@ -288,41 +148,64 @@ def receive_data():
         return "Unauthorized", 401
 
     sensor_id = request.form.get("sensor_id")
-    value_text = request.form.get("value")
+    value = float(request.form.get("value"))
+    zone = SENSOR_ZONES.get(sensor_id)
 
-    if not sensor_id or sensor_id not in SENSOR_ZONES:
-        return "Invalid sensor_id", 400
-
-    try:
-        value = float(value_text)
-    except (TypeError, ValueError):
-        return "Invalid value", 400
-
-    zone = SENSOR_ZONES[sensor_id]
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time_ = now.strftime("%H:%M:%S")
 
     cursor.execute(
         "SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1",
-        (sensor_id,),
+        (sensor_id,)
     )
-    last_row = cursor.fetchone()
-    last_value, last_status = last_row if last_row else (None, "OFF")
+    last = cursor.fetchone()
+    last_value, last_status = last if last else (None, "OFF")
 
     if value > 40:
         status = "OFF"
-    elif last_value is not None and last_value < 25 and value < 25:
+    elif last_value and last_value < 25 and value < 25:
         status = "ON"
     else:
         status = last_status
 
     cursor.execute(
         "INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)",
-        (zone, sensor_id, date, time_, value, status),
+        (zone, sensor_id, date, time_, value, status)
     )
     conn.commit()
     return "OK", 200
+
+# -----------------------------
+# DASHBOARD
+# -----------------------------
+@app.route("/")
+def index():
+    if "user_id" not in session:
+        return redirect("/login")
+    zones = ZONES if session["role"] == "manager" else get_user_zones(session["user_id"])
+    return render_template("index.html", zones=zones)
+
+@app.route("/zone/<zone_name>")
+def zone_page(zone_name):
+    if "user_id" not in session:
+        return redirect("/login")
+    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
+        return "Access denied", 403
+
+    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
+    cursor.execute("""
+        SELECT sensor_id, date, time, value, machine_status
+        FROM readings
+        WHERE zone=? AND date=?
+        ORDER BY time
+    """, (zone_name, selected_date))
+    rows = cursor.fetchall()
+    data = {}
+    for s, d, t, v, m in rows:
+        data.setdefault(s, []).append((d, t, v, m))
+
+    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date)
 
 if __name__ == "__main__":
     app.run(debug=True)
