@@ -19,25 +19,23 @@ header {
     padding: 15px 30px;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* space between logo and Acceuil */
+}
+
 .logo {
     font-weight: bold;
     font-size: 24px;
 }
 
-/* ACCEUIL BUTTON NEAR LOGO */
 .acceuil-btn {
+    padding: 8px 14px;
     background: #2563eb;
+    border-radius: 8px;
     color: white;
-    padding: 6px 14px;
-    border-radius: 6px;
     text-decoration: none;
-    margin-left: 10px;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.acceuil-btn:hover {
-    background: #1e40af;
 }
 
 /* -----------------------
@@ -49,6 +47,15 @@ header {
 
 .user-menu span {
     cursor: pointer;
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    text-align: center;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    font-weight: bold;
 }
 
 .user-menu .dropdown {
@@ -93,14 +100,16 @@ header {
     margin-bottom: 30px;
 }
 
-.login-box input {
+.login-box form input {
+    display: block;
+    margin: 15px auto;
     padding: 10px 14px;
     border-radius: 6px;
     border: none;
     width: 80%;
 }
 
-.login-box button {
+.login-box form button {
     padding: 10px 14px;
     border-radius: 6px;
     border: none;
@@ -108,7 +117,7 @@ header {
     color: white;
     cursor: pointer;
     width: 50%;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 /* -----------------------
@@ -129,68 +138,44 @@ header {
     text-decoration: none;
     color: white;
     font-weight: bold;
-    transition: background 0.3s, transform 0.2s;
 }
 
 .zone-box:hover {
     background: #2563eb;
-    transform: translateY(-5px);
 }
 
 /* -----------------------
-   TABLES (POLISHED)
+   TABLES
 ----------------------- */
 table {
     width: 90%;
     margin: 20px auto;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
+    background: #111827;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    font-size: 16px;
 }
 
-/* Table header */
-table th {
-    background: #2563eb;
+th {
+    background: #2563eb; /* same as button color */
     color: white;
     font-weight: bold;
     padding: 12px;
+}
+
+td {
+    padding: 10px;
     text-align: center;
-}
-
-/* Table rows alternate colors */
-table tr:nth-child(even) {
-    background: #1f2937;
-}
-
-table tr:nth-child(odd) {
-    background: #111827;
-}
-
-/* Hover effect */
-table tr:hover {
-    background: #2563eb;
-    color: white;
-}
-
-/* Table cells */
-th, td {
-    padding: 12px;
     border-bottom: 1px solid #1f2937;
-    text-align: center;
+}
+
+tr:hover {
+    background: none; /* remove hover effect */
 }
 
 /* -----------------------
    MACHINE STATUS
 ----------------------- */
-.machine-status {
-    padding: 5px 10px;
-    border-radius: 6px;
-    display: inline-block;
-}
-
 .machine-status.on {
     background: white;
     color: #0f172a;
@@ -238,21 +223,16 @@ button {
 }
 
 /* -----------------------
-   GENERAL HEADINGS
+   ZONE PAGE HEADER
 ----------------------- */
-h1, h2 {
-    text-align: center;
-    margin-top: 20px;
+.zone-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px; /* space between title and date picker */
+    margin: 20px 0 10px 5%;
 }
 
-.success {
-    color: #22c55e;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.error {
-    color: #f87171;
-    text-align: center;
-    margin-top: 10px;
+.zone-header h1 {
+    margin: 0;
 }

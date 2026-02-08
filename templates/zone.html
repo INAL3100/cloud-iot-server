@@ -6,10 +6,12 @@
 </head>
 <body>
 <header>
-    <div class="logo">Nexa Sens</div>
-    <a href="/" class="acceuil-btn">Accueil</a>
+    <div class="header-left">
+        <div class="logo">Nexa Sens</div>
+        <a href="/" class="acceuil-btn">Accueil</a>
+    </div>
     <div class="user-menu">
-        <span>{{ session.get('username') }}</span>
+        <span>{{ session.get('username')[0] }}</span>
         <div class="dropdown">
             <a href="/settings">Settings</a>
             <a href="/logout">Logout</a>
@@ -17,12 +19,13 @@
     </div>
 </header>
 
-<h1>{{ zone }}</h1>
-
-<form method="get">
-    <input type="date" name="date" value="{{ selected_date }}">
-    <button type="submit">Apply</button>
-</form>
+<div class="zone-header">
+    <h1>{{ zone }}</h1>
+    <form method="get">
+        <input type="date" name="date" value="{{ selected_date }}">
+        <button type="submit">Apply</button>
+    </form>
+</div>
 
 <table>
 <tr>
