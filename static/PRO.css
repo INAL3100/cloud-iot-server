@@ -24,10 +24,20 @@ header {
     font-size: 24px;
 }
 
+/* ACCEUIL BUTTON NEAR LOGO */
 .acceuil-btn {
+    background: #2563eb;
     color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
     text-decoration: none;
-    margin-right: 20px;
+    margin-left: 10px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.acceuil-btn:hover {
+    background: #1e40af;
 }
 
 /* -----------------------
@@ -88,7 +98,6 @@ header {
     border-radius: 6px;
     border: none;
     width: 80%;
-    margin-bottom: 15px;
 }
 
 .login-box button {
@@ -99,7 +108,7 @@ header {
     color: white;
     cursor: pointer;
     width: 50%;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 /* -----------------------
@@ -120,23 +129,55 @@ header {
     text-decoration: none;
     color: white;
     font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
 }
 
 .zone-box:hover {
     background: #2563eb;
+    transform: translateY(-5px);
 }
 
 /* -----------------------
-   TABLES
+   TABLES (POLISHED)
 ----------------------- */
 table {
     width: 90%;
     margin: 20px auto;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    font-size: 16px;
 }
 
+/* Table header */
+table th {
+    background: #2563eb;
+    color: white;
+    font-weight: bold;
+    padding: 12px;
+    text-align: center;
+}
+
+/* Table rows alternate colors */
+table tr:nth-child(even) {
+    background: #1f2937;
+}
+
+table tr:nth-child(odd) {
+    background: #111827;
+}
+
+/* Hover effect */
+table tr:hover {
+    background: #2563eb;
+    color: white;
+}
+
+/* Table cells */
 th, td {
-    padding: 10px;
+    padding: 12px;
     border-bottom: 1px solid #1f2937;
     text-align: center;
 }
@@ -144,19 +185,22 @@ th, td {
 /* -----------------------
    MACHINE STATUS
 ----------------------- */
+.machine-status {
+    padding: 5px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
 .machine-status.on {
     background: white;
     color: #0f172a;
     font-weight: bold;
-    border-radius: 6px;
-    padding: 5px 10px;
 }
 
 .machine-status.off {
-    background: transparent;
+    background: none;
     color: white;
     font-weight: normal;
-    padding: 5px 10px;
 }
 
 /* -----------------------
@@ -194,8 +238,13 @@ button {
 }
 
 /* -----------------------
-   SUCCESS / ERROR MESSAGES
+   GENERAL HEADINGS
 ----------------------- */
+h1, h2 {
+    text-align: center;
+    margin-top: 20px;
+}
+
 .success {
     color: #22c55e;
     text-align: center;
@@ -205,5 +254,5 @@ button {
 .error {
     color: #f87171;
     text-align: center;
-    margin-bottom: 10px;
+    margin-top: 10px;
 }
