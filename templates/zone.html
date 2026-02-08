@@ -1,52 +1,76 @@
 <!DOCTYPE html>
+<html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="/static/PRO.css">
     <meta charset="UTF-8">
-    <title>{{ zone }} Data</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ zone }} - Nexa Sensors</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-    <header>
-        <h1>{{ zone }} Dashboard</h1>
-        <div>
-            <a href="/">Back to zones</a>
-            <span>User: {{ session.username }}</span>
-            <a href="/logout">Logout</a>
+    <header class="topbar">
+        <div class="brand">Nexa Sensors</div>
+        <nav class="top-links">
+            <a href="/" class="home-link">Accueil</a>
+        </nav>
+        <div class="user-menu">
+            <button type="button" class="user-button">{{ session.get('username') }} ▾</button>
+            <div class="dropdown">
+                <a href="/settings">Settings</a>
+                <a href="/logout">Logout</a>
+            </div>
         </div>
     </header>
 
-    <main>
-        <form method="get">
-            <label for="date">Select Date:</label>
-            <input type="date" id="date" name="date" value="{{ selected_date }}">
-            <button type="submit">Go</button>
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="brand">NEXA SENS</div>
+    <a href="/index" class="nav-link">Accueil</a>
+  </div>
+  <div class="topbar-right">
+    <div class="user-menu">{{ session['username'] }}
+      <div class="dropdown">
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  </div>
+</header>
+    <main class="page-wrap">
+        <h1>{{ zone }}</h1>
+
+<h2 class="page-title">{{ zone.name }}</h2>
+        <form method="get" class="date-form">
+            <label for="date">Date</label>
+            <input id="date" type="date" name="date" value="{{ selected_date }}">
+            <button type="submit">Apply</button>
         </form>
 
-        {% for sensor, records in data.items() %}
-        <section>
-            <h3>{{ sensor }}</h3>
+        <div class="table-wrap">
             <table>
-                <thead>
+                <tr>
+                    <th>Sensor</th>
+                    <th>Time</th>
+                    <th>Value</th>
+                    <th>Machine Status</th>
+                </tr>
+                {% for sensor, readings in data.items() %}
+                    {% for date, time_, value, status in readings %}
                     <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Value</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for date, time, value, status in records %}
-                    <tr>
-                        <td>{{ date }}</td>
-                        <td>{{ time }}</td>
+                        <td>{{ sensor }}</td>
+                        <td>{{ time_ }}</td>
                         <td>{{ value }}</td>
-                        <td>{{ status }}</td>
+                        <td class="machine-status {% if status == 'ON' %}on{% else %}off{% endif %}">{{ status }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4">No readings found for this date.</td>
                     </tr>
                 {% endfor %}
-                </tbody>
             </table>
-        </section>
-        {% endfor %}
+        </div>
     </main>
 </body>
 </html>
