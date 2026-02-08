@@ -1,98 +1,80 @@
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
     font-family: "Segoe UI", Tahoma, sans-serif;
-    background: radial-gradient(circle at top, #0f172a, #020617);
+    background: #0f172a;
     color: white;
 }
 
-/* ---------- TOPBAR ---------- */
-.topbar {
+header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 40px;
+    padding: 15px 30px;
     background: #111827;
 }
 
-.topbar .logo {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.topbar .btn {
+.logo { font-size: 28px; font-weight: 700; }
+.acceuil-btn {
     color: white;
     text-decoration: none;
-    margin-left: 20px;
+    background: #2563eb;
+    padding: 8px 16px;
+    border-radius: 8px;
 }
+.acceuil-btn:hover { background: #1d4ed8; }
 
-.user-dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.user-dropdown span {
-    cursor: pointer;
-}
-
-.user-dropdown .dropdown-content {
+.user-menu { position: relative; cursor: pointer; }
+.user-menu span { font-weight: bold; }
+.user-menu .dropdown {
     display: none;
     position: absolute;
+    top: 30px;
     right: 0;
-    background-color: #1f2937;
-    min-width: 120px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
+    background: #111827;
+    border: 1px solid #2563eb;
+    border-radius: 8px;
 }
-
-.user-dropdown:hover .dropdown-content {
+.user-menu:hover .dropdown { display: block; }
+.user-menu .dropdown a {
     display: block;
-}
-
-.user-dropdown .dropdown-content a {
-    color: white;
     padding: 8px 12px;
     text-decoration: none;
-    display: block;
+    color: white;
 }
+.user-menu .dropdown a:hover { background: #2563eb; }
 
-.user-dropdown .dropdown-content a:hover {
-    background-color: #2563eb;
-}
+.title { text-align: center; font-size: 36px; margin: 20px 0; }
 
-/* ---------- ZONES ---------- */
+/* Zones layout */
 .zones {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 40px;
-    margin: 60px auto;
+    gap: 30px;
+    margin-top: 40px;
 }
-
 .zone-box {
     width: 200px;
     height: 150px;
-    background: linear-gradient(145deg, #111827, #1f2937);
-    border-radius: 20px;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #e5e7eb;
     font-size: 24px;
     font-weight: 600;
-    color: #e5e7eb;
-    text-decoration: none;
-    transition: all 0.3s ease;
+    background: #111827;
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+    transition: 0.3s;
+    border: 1px solid rgba(255,255,255,0.1);
 }
-
 .zone-box:hover {
     transform: scale(1.05);
-    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+    background: #1d4ed8;
 }
 
-/* ---------- TABLE ---------- */
+/* Table */
 table {
     width: 95%;
     margin: auto;
@@ -100,53 +82,50 @@ table {
     background: #020617;
     box-shadow: 0 20px 60px rgba(0,0,0,0.8);
 }
+th { background: #1d4ed8; padding: 14px; text-transform: uppercase; }
+td { padding: 12px; border-bottom: 1px solid #1f2937; text-align: center; }
 
-th {
-    background: #1d4ed8;
-    padding: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+/* Machine status */
+.machine-status { font-weight: bold; border-radius: 6px; padding: 5px; }
+.machine-status.on { color: white; }
+.machine-status.off { color: white; background: none; }
 
-td {
-    padding: 12px;
-    border-bottom: 1px solid #1f2937;
-}
-
-/* ---------- MACHINE STATUS ---------- */
-.machine-status {
-    text-align: center;
-    font-weight: bold;
-    padding: 8px;
-    border-radius: 6px;
-    color: white; /* OFF = white */
-    background-color: transparent;
-}
-
-.machine-status.on {
-    background-color: white; /* ON = white */
-}
-
-/* ---------- CENTER TEXT ---------- */
-.center-text {
-    text-align: center;
-}
-
-/* ---------- FORMS ---------- */
-.date-form, .settings-form {
-    text-align: center;
-    margin: 20px;
-}
-
-input, button {
-    padding: 8px 12px;
-    margin: 5px;
-    border-radius: 6px;
+/* Forms */
+form input, form select, form button {
+    padding: 10px;
+    border-radius: 8px;
     border: none;
+    margin: 5px 0;
 }
+form button { background: #2563eb; color: white; cursor: pointer; }
+form button:hover { background: #1d4ed8; }
 
-button {
-    background: #2563eb;
-    color: white;
-    cursor: pointer;
+/* Login */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.login-box {
+    background: #111827;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    text-align: center;
+    width: 300px;
+}
+.login-box h2 { margin-bottom: 30px; color: #2563eb; font-size: 28px; }
+.login-box input { width: 90%; outline: none; }
+.error-msg { color: #f87171; margin-bottom: 10px; }
+
+/* Settings */
+.settings-form {
+    max-width: 400px;
+    margin: auto;
+    padding: 30px;
+    background: #111827;
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+    text-align: center;
 }
