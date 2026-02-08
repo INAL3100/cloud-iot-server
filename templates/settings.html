@@ -1,39 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Settings - Nexa Sensors</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='PRO.css') }}">
+    <title>Settings</title>
+    <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-
-<div class="topbar">
-    <div class="left">
-        <span class="logo">Nexa Sensors</span>
-        <a href="/" class="btn">Accueil</a>
-    </div>
-    <div class="right">
-        <div class="user-dropdown">
-            <span>{{ username }}</span>
-            <div class="dropdown-content">
-                <a href="/logout">Logout</a>
-            </div>
+<header>
+    <div class="logo">Nexa Sens</div>
+    <a href="/" class="acceuil-btn">Accueil</a>
+    <div class="user-menu">
+        <span>{{ session.get('username') }}</span>
+        <div class="dropdown">
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
         </div>
     </div>
+</header>
+
+<div class="content">
+    <h2>Change Username / Password</h2>
+    <form method="POST" class="settings-form">
+        <input type="text" name="username" placeholder="New Username" required><br><br>
+        <input type="password" name="password" placeholder="New Password" required><br><br>
+        <button type="submit">Save Changes</button>
+    </form>
+    {% if message %}<p class="success">{{ message }}</p>{% endif %}
 </div>
-
-<h2 class="subtitle">Settings</h2>
-
-{% if message %}
-<p style="color: lightgreen; text-align:center;">{{ message }}</p>
-{% endif %}
-
-<form method="post" class="settings-form">
-    <label>Change Username:</label>
-    <input type="text" name="username" placeholder="{{ username }}">
-    <label>Change Password:</label>
-    <input type="password" name="password" placeholder="New Password">
-    <button type="submit">Update</button>
-</form>
-
 </body>
 </html>

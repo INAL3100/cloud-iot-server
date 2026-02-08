@@ -1,32 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Nexa Sensors</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='PRO.css') }}">
+    <title>Nexa Sens Dashboard</title>
+    <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-
-<div class="topbar">
-    <div class="left">
-        <span class="logo">Nexa Sensors</span>
-        <a href="/" class="btn">Accueil</a>
-    </div>
-    <div class="right">
-        <div class="user-dropdown">
-            <span>{{ username }}</span>
-            <div class="dropdown-content">
-                <a href="/settings">Settings</a>
-                <a href="/logout">Logout</a>
-            </div>
+<header>
+    <div class="logo">Nexa Sens</div>
+    <a href="/" class="acceuil-btn">Accueil</a>
+    <div class="user-menu">
+        <span>{{ session.get('username') }}</span>
+        <div class="dropdown">
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
         </div>
     </div>
-</div>
+</header>
 
+<h1 class="title">Dashboard</h1>
 <div class="zones">
     {% for zone in zones %}
         <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
     {% endfor %}
 </div>
-
 </body>
 </html>

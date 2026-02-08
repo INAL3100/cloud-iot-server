@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, session, url_for
+from flask import Flask, request, render_template, redirect, session
 from datetime import datetime
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,7 +9,7 @@ app.secret_key = "nexa_sens_secret"
 API_KEY = "NEXA_SENS_DEVICE_KEY"
 
 # -----------------------------
-# ZONES
+# ZONES & SENSOR MAPPING
 # -----------------------------
 ZONES = ["Zone 1", "Zone 2", "Zone 3"]
 
@@ -71,9 +71,9 @@ def create_demo_users():
             "INSERT OR IGNORE INTO users VALUES (NULL, ?, ?, ?)",
             (u, generate_password_hash(p), r)
         )
+
     conn.commit()
 
-    # Assign zones
     cursor.execute("SELECT id, username FROM users")
     for uid, uname in cursor.fetchall():
         if uname == "eng1":
@@ -84,7 +84,7 @@ def create_demo_users():
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
     conn.commit()
 
-create_demo_users()  # Run once, then you can comment out
+create_demo_users()  # run once then comment
 
 # -----------------------------
 # HELPERS
@@ -94,7 +94,7 @@ def get_user_zones(user_id):
     return [z[0] for z in cursor.fetchall()]
 
 # -----------------------------
-# LOGIN
+# LOGIN / LOGOUT
 # -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -103,12 +103,14 @@ def login():
         p = request.form["password"]
         cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
         user = cursor.fetchone()
+
         if user and check_password_hash(user[1], p):
             session["user_id"] = user[0]
+            session["username"] = u
             session["role"] = user[2]
-            return redirect(url_for("index"))
+            return redirect("/")
         return render_template("login.html", error="Invalid credentials")
-    return render_template("login.html", error=None)
+    return render_template("login.html")
 
 @app.route("/logout")
 def logout():
@@ -122,22 +124,21 @@ def logout():
 def settings():
     if "user_id" not in session:
         return redirect("/login")
-    
-    cursor.execute("SELECT username FROM users WHERE id=?", (session["user_id"],))
-    username = cursor.fetchone()[0]
 
     message = ""
     if request.method == "POST":
         new_username = request.form["username"]
-        new_password = request.form["password"]
-        if new_username:
-            cursor.execute("UPDATE users SET username=? WHERE id=?", (new_username, session["user_id"]))
-        if new_password:
-            cursor.execute("UPDATE users SET password=? WHERE id=?", 
-                           (generate_password_hash(new_password), session["user_id"]))
+        new_password = generate_password_hash(request.form["password"])
+        cursor.execute(
+            "UPDATE users SET username=?, password=? WHERE id=?",
+            (new_username, new_password, session["user_id"])
+        )
         conn.commit()
-        message = "Settings updated!"
-    return render_template("settings.html", username=username, message=message)
+        session["username"] = new_username
+        message = "Changes saved successfully"
+        return redirect("/")
+
+    return render_template("settings.html", message=message)
 
 # -----------------------------
 # RECEIVE SENSOR DATA
@@ -146,24 +147,29 @@ def settings():
 def receive_data():
     if request.headers.get("X-API-KEY") != API_KEY:
         return "Unauthorized", 401
+
     sensor_id = request.form.get("sensor_id")
     value = float(request.form.get("value"))
     zone = SENSOR_ZONES.get(sensor_id)
+
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time_ = now.strftime("%H:%M:%S")
+
     cursor.execute(
         "SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1",
         (sensor_id,)
     )
     last = cursor.fetchone()
     last_value, last_status = last if last else (None, "OFF")
+
     if value > 40:
         status = "OFF"
     elif last_value and last_value < 25 and value < 25:
         status = "ON"
     else:
         status = last_status
+
     cursor.execute(
         "INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)",
         (zone, sensor_id, date, time_, value, status)
@@ -178,13 +184,8 @@ def receive_data():
 def index():
     if "user_id" not in session:
         return redirect("/login")
-    if session["role"] == "manager":
-        zones = ZONES
-    else:
-        zones = get_user_zones(session["user_id"])
-    cursor.execute("SELECT username FROM users WHERE id=?", (session["user_id"],))
-    username = cursor.fetchone()[0]
-    return render_template("index.html", zones=zones, username=username)
+    zones = ZONES if session["role"] == "manager" else get_user_zones(session["user_id"])
+    return render_template("index.html", zones=zones)
 
 @app.route("/zone/<zone_name>")
 def zone_page(zone_name):
@@ -192,6 +193,7 @@ def zone_page(zone_name):
         return redirect("/login")
     if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
         return "Access denied", 403
+
     selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
     cursor.execute("""
         SELECT sensor_id, date, time, value, machine_status
@@ -203,9 +205,8 @@ def zone_page(zone_name):
     data = {}
     for s, d, t, v, m in rows:
         data.setdefault(s, []).append((d, t, v, m))
-    cursor.execute("SELECT username FROM users WHERE id=?", (session["user_id"],))
-    username = cursor.fetchone()[0]
-    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date, username=username)
+
+    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date)
 
 if __name__ == "__main__":
     app.run(debug=True)
