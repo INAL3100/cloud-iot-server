@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, session, url_for, flash
+from flask import Flask, request, render_template, redirect, session
 from datetime import datetime
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,9 +8,7 @@ app.secret_key = "nexa_sens_secret"
 
 API_KEY = "NEXA_SENS_DEVICE_KEY"
 
-# -----------------------------
-# ZONES
-# -----------------------------
+# ZONES and SENSOR mapping
 ZONES = ["Zone 1", "Zone 2", "Zone 3"]
 SENSOR_ZONES = {
     "SENSOR_1": "Zone 1",
@@ -18,12 +16,11 @@ SENSOR_ZONES = {
     "SENSOR_3": "Zone 3",
 }
 
-# -----------------------------
-# DATABASE
-# -----------------------------
+# Connect to database
 conn = sqlite3.connect("sensors.db", check_same_thread=False)
 cursor = conn.cursor()
 
+# Create tables if not exists
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +32,6 @@ CREATE TABLE IF NOT EXISTS readings (
     machine_status TEXT
 )
 """)
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,22 +40,17 @@ CREATE TABLE IF NOT EXISTS users (
     role TEXT
 )
 """)
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS user_zones (
     user_id INTEGER,
     zone TEXT
 )
 """)
-
 conn.commit()
 
-# -----------------------------
-# DEMO USERS (RUN ONCE)
-# -----------------------------
+# Demo users (run once)
 def create_demo_users():
     users = [
-        ("itadmin", "1234", "it"),
         ("manager", "1234", "manager"),
         ("eng1", "1234", "engineer"),
         ("eng2", "1234", "engineer"),
@@ -82,29 +73,29 @@ def create_demo_users():
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
     conn.commit()
 
-create_demo_users()  # ← run once, then comment out
+create_demo_users()  # run once, then comment
 
-# -----------------------------
-# HELPERS
-# -----------------------------
+# Helper functions
 def get_user_zones(user_id):
     cursor.execute("SELECT zone FROM user_zones WHERE user_id=?", (user_id,))
     return [z[0] for z in cursor.fetchall()]
 
-# -----------------------------
+def get_username(user_id):
+    cursor.execute("SELECT username FROM users WHERE id=?", (user_id,))
+    row = cursor.fetchone()
+    return row[0] if row else ""
+
 # LOGIN
-# -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        u = request.form["username"]
-        p = request.form["password"]
-        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
+        username = request.form["username"]
+        password = request.form["password"]
+        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (username,))
         user = cursor.fetchone()
-        if user and check_password_hash(user[1], p):
+        if user and check_password_hash(user[1], password):
             session["user_id"] = user[0]
             session["role"] = user[2]
-            session["username"] = u
             return redirect("/")
         return render_template("login.html", error="Invalid credentials")
     return render_template("login.html")
@@ -114,31 +105,45 @@ def logout():
     session.clear()
     return redirect("/login")
 
-# -----------------------------
+# SETTINGS
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if "user_id" not in session:
+        return redirect("/login")
+    user_id = session["user_id"]
+    username = get_username(user_id)
+    message = ""
+    if request.method == "POST":
+        new_username = request.form.get("username")
+        new_password = request.form.get("password")
+        if new_username:
+            cursor.execute("UPDATE users SET username=? WHERE id=?", (new_username, user_id))
+            message = "Username updated!"
+        if new_password:
+            cursor.execute("UPDATE users SET password=? WHERE id=?", (generate_password_hash(new_password), user_id))
+            message = "Password updated!"
+        conn.commit()
+    return render_template("settings.html", username=username, message=message)
+
 # RECEIVE SENSOR DATA
-# -----------------------------
 @app.route("/data", methods=["POST"])
 def receive_data():
     if request.headers.get("X-API-KEY") != API_KEY:
         return "Unauthorized", 401
+
     sensor_id = request.form.get("sensor_id")
     value = float(request.form.get("value"))
     zone = SENSOR_ZONES.get(sensor_id)
+
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time_ = now.strftime("%H:%M:%S")
-    cursor.execute(
-        "SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1",
-        (sensor_id,)
-    )
+
+    # Determine machine status
+    cursor.execute("SELECT value FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1", (sensor_id,))
     last = cursor.fetchone()
-    last_value, last_status = last if last else (None, "OFF")
-    if value > 40:
-        status = "OFF"
-    elif last_value and last_value < 25 and value < 25:
-        status = "ON"
-    else:
-        status = last_status
+    status = "ON" if value < 25 else "OFF"
+
     cursor.execute(
         "INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)",
         (zone, sensor_id, date, time_, value, status)
@@ -146,67 +151,35 @@ def receive_data():
     conn.commit()
     return "OK", 200
 
-# -----------------------------
 # DASHBOARD
-# -----------------------------
 @app.route("/")
 def index():
     if "user_id" not in session:
         return redirect("/login")
+    user_id = session["user_id"]
     if session["role"] == "manager":
         zones = ZONES
     else:
-        zones = get_user_zones(session["user_id"])
-    return render_template("index.html", zones=zones, username=session.get("username"))
+        zones = get_user_zones(user_id)
+    return render_template("index.html", zones=zones, username=get_username(user_id))
 
 @app.route("/zone/<zone_name>")
 def zone_page(zone_name):
     if "user_id" not in session:
         return redirect("/login")
-    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
+    user_id = session["user_id"]
+    if session["role"] != "manager" and zone_name not in get_user_zones(user_id):
         return "Access denied", 403
-    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("""
-        SELECT sensor_id, date, time, value, machine_status
-        FROM readings
-        WHERE zone=? AND date=?
-        ORDER BY time
-    """, (zone_name, selected_date))
-    rows = cursor.fetchall()
-    data = {}
-    for s, d, t, v, m in rows:
-        data.setdefault(s, []).append((d, t, v, m))
-    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date, username=session.get("username"))
 
-# -----------------------------
-# SETTINGS PAGE
-# -----------------------------
-@app.route("/settings", methods=["GET", "POST"])
-def settings():
-    if "user_id" not in session:
-        return redirect("/login")
-    message = ""
-    if request.method == "POST":
-        action = request.form.get("action")
-        if action == "change_password":
-            current = request.form.get("current_password")
-            new = request.form.get("new_password")
-            cursor.execute("SELECT password FROM users WHERE id=?", (session["user_id"],))
-            stored = cursor.fetchone()[0]
-            if check_password_hash(stored, current):
-                cursor.execute("UPDATE users SET password=? WHERE id=?", (generate_password_hash(new), session["user_id"]))
-                conn.commit()
-                message = "Password changed successfully."
-            else:
-                message = "Current password incorrect."
-        elif action == "create_user" and session["role"] == "it":
-            new_user = request.form.get("new_username")
-            new_pass = request.form.get("new_user_password")
-            role = request.form.get("role")
-            cursor.execute("INSERT INTO users (username,password,role) VALUES (?,?,?)", (new_user, generate_password_hash(new_pass), role))
-            conn.commit()
-            message = f"User {new_user} created."
-    return render_template("settings.html", username=session.get("username"), role=session.get("role"), message=message)
+    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
+    cursor.execute("SELECT sensor_id, date, time, value, machine_status FROM readings WHERE zone=? AND date=? ORDER BY time", (zone_name, selected_date))
+    rows = cursor.fetchall()
+
+    data = {}
+    for sensor, date_, time_, value, status in rows:
+        data.setdefault(sensor, []).append((date_, time_, value, status))
+
+    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date, username=get_username(user_id))
 
 if __name__ == "__main__":
     app.run(debug=True)

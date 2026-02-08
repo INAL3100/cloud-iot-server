@@ -1,30 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NEXA SENS Dashboard</title>
-    <link rel="stylesheet" href="/static/PRO.css">
+    <title>NexaSens</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+
 <div class="top-bar">
-    <div class="left">
-        <span class="logo">NEXA SENS</span>
-        <a href="/" class="accueil">Accueil</a>
-    </div>
-    <div class="right">
-        <div class="dropdown">
-            <button class="dropbtn">{{ username }}</button>
-            <div class="dropdown-content">
-                <a href="/settings">Settings</a>
-                <a href="/logout">Logout</a>
-            </div>
-        </div>
+    <div class="logo">NexaSens</div>
+    <div class="left-menu"><a href="/">Accueil</a></div>
+    <div class="right-menu">
+        {{ username }} | <a href="/settings">Settings</a> | <a href="/logout">Logout</a>
     </div>
 </div>
 
-<div class="zones" {% if zones|length == 1 %}style="justify-content:center;"{% endif %}>
+<h1>Welcome to NexaSens</h1>
+
+<div class="zones">
     {% for zone in zones %}
-        <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
+        <a class="zone-box" href="/zone/{{ zone }}">{{ zone }}</a>
     {% endfor %}
 </div>
+
 </body>
 </html>

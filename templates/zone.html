@@ -1,61 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ zone }} - NEXA SENS</title>
-    <link rel="stylesheet" href="/static/PRO.css">
+    <title>{{ zone }} - NexaSens</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+
 <div class="top-bar">
-    <div class="left">
-        <span class="logo">NEXA SENS</span>
-        <a href="/" class="accueil">Accueil</a>
-    </div>
-    <div class="right">
-        <div class="dropdown">
-            <button class="dropbtn">{{ username }}</button>
-            <div class="dropdown-content">
-                <a href="/settings">Settings</a>
-                <a href="/logout">Logout</a>
-            </div>
-        </div>
+    <div class="logo">NexaSens</div>
+    <div class="left-menu"><a href="/">Accueil</a></div>
+    <div class="right-menu">
+        {{ username }} | <a href="/settings">Settings</a> | <a href="/logout">Logout</a>
     </div>
 </div>
 
-<h2 class="subtitle">{{ zone }}</h2>
+<h1>{{ zone }}</h1>
 
 <form method="get" class="date-form">
-    <label>Select Date:</label>
-    <input type="date" name="date" value="{{ selected_date }}">
-    <button type="submit">Apply</button>
+    Date: <input type="date" name="date" value="{{ selected_date }}">
+    <button type="submit">Go</button>
 </form>
 
 <table>
-<tr>
-    <th>Sensor ID</th>
-    <th>Date</th>
-    <th>Time</th>
-    <th>Machine Status</th>
-    <th>Value</th>
-    <th>Daily Avg</th>
-</tr>
-
-{% for sensor, readings in data.items() %}
-    {% set avg = (readings | map(attribute=2) | sum) / (readings | length) %}
-    {% for date, time_, value, status in readings %}
     <tr>
-        <td class="center-text">{{ sensor }}</td>
-        <td class="center-text">{{ date }}</td>
-        <td class="center-text">{{ time_ }}</td>
-        {% if status == 'ON' %}
-            <td class="machine-status on">ON</td>
-        {% else %}
-            <td class="machine-status">OFF</td>
-        {% endif %}
-        <td class="center-text">{{ value }}</td>
-        <td class="center-text">{{ "%.2f"|format(avg) }}</td>
+        <th>Sensor</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Value</th>
     </tr>
+
+    {% for sensor, readings in data.items() %}
+        {% for date_, time_, value, status in readings %}
+            <tr>
+                <td>{{ sensor }}</td>
+                <td>{{ date_ }}</td>
+                <td>{{ time_ }}</td>
+                <td class="{{ 'on' if status=='ON' else 'off' }}">{{ status }}</td>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
     {% endfor %}
-{% endfor %}
 </table>
+
 </body>
 </html>
