@@ -1,324 +1,209 @@
-* { box-sizing: border-box; font-family: Arial; }
-:root {
-    --bg: #0f172a;
-    --panel: #111827;
-    --panel-2: #1f2937;
-    --text: #f8fafc;
-    --muted: #cbd5e1;
-    --primary: #2563eb;
-    --border: #334155;
-}
-
-body { margin: 0; background: #f4f6f9; }
-* {
-    box-sizing: border-box;
-}
-
-/* HEADER */
+/* -----------------------
+   GENERAL BODY STYLES
+----------------------- */
 body {
-    margin: 0;
     font-family: "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    background: #0f172a;
+    color: white;
+    margin: 0;
 }
 
-/* ---------- Shared top bar ---------- */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  background: #0f172a;
-  color: white;
-  padding: 14px 24px;
-}
-.topbar-left { display: flex; gap: 20px; align-items: center; }
-.brand { font-size: 20px; font-weight: bold; }
-.nav-link { color: #cbd5e1; text-decoration: none; }
-.nav-link:hover { color: #3b82f6; }
-
-.user-menu { 
-    position: relative; cursor: pointer; 
+/* -----------------------
+   HEADER
+----------------------- */
+header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 14px 24px;
-    background: var(--panel-2);
-    border-bottom: 1px solid var(--border);
+    align-items: center;
+    background: #1f2937;
+    padding: 15px 30px;
 }
 
-.brand {
-    font-size: 1.25rem;
-    font-weight: 700;
+.logo {
+    font-weight: bold;
+    font-size: 24px;
 }
 
-.top-links {
-    margin-left: auto;
-    margin-right: 8px;
-}
-
-.home-link {
+.acceuil-btn {
+    color: white;
     text-decoration: none;
-    color: var(--text);
-    padding: 8px 14px;
-    border-radius: 8px;
-    border: 1px solid transparent;
+    margin-right: 20px;
 }
 
-.home-link:hover {
-    border-color: var(--border);
-    background: #0b1222;
-}
-
-/* ---------- User dropdown ---------- */
+/* -----------------------
+   USER MENU
+----------------------- */
 .user-menu {
     position: relative;
 }
 
-.user-button {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px;
+.user-menu span {
     cursor: pointer;
 }
 
-.dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  background: white;
+.user-menu .dropdown {
     display: none;
     position: absolute;
     right: 0;
-    top: calc(100% + 8px);
-    min-width: 150px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
+    background: #111827;
+    padding: 10px;
+    border-radius: 6px;
 }
-.user-menu:hover .dropdown { display: block; }
 
-.dropdown a {
-  display: block;
-  padding: 10px;
-  color: black;
-  text-decoration: none;
+.user-menu:hover .dropdown {
     display: block;
+}
+
+.user-menu .dropdown a {
+    display: block;
+    color: white;
     text-decoration: none;
-    color: var(--text);
-    padding: 10px 12px;
+    margin: 5px 0;
 }
 
-.dropdown a:hover {
-    background: #0b1222;
-}
-
-.user-menu:hover .dropdown,
-.user-menu:focus-within .dropdown {
-    display: block;
-}
-.dropdown a:hover { background: #e5e7eb; }
-
-/* ZONES */
-/* ---------- Layout containers ---------- */
-.page-wrap {
-    width: min(1000px, 92%);
-    margin: 28px auto;
-}
-
-.card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
-}
-
-/* ---------- Login ---------- */
-.login-page {
-    min-height: 100vh;
-}
-
+/* -----------------------
+   LOGIN PAGE
+----------------------- */
 .login-container {
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
 .login-box {
-    width: min(440px, 100%);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 30px;
+    background: #111827;
+    padding: 50px;
+    border-radius: 20px;
+    text-align: center;
+    width: 350px;
 }
 
-.subtitle {
-    margin-top: 0;
-    color: var(--muted);
+.login-box h1 {
+    margin-bottom: 30px;
 }
 
-/* ---------- Forms ---------- */
-.stack-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.login-box input {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    width: 80%;
+    margin-bottom: 15px;
 }
 
-label {
-    font-size: 0.95rem;
-    color: var(--muted);
-}
-
-input,
-button {
-    border-radius: 8px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    font-size: 1rem;
-}
-
-input {
-    background: #0b1222;
-    color: var(--text);
-}
-
-button {
-    background: var(--primary);
+.login-box button {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #2563eb;
     color: white;
     cursor: pointer;
-    border-color: transparent;
+    width: 50%;
+    margin-top: 10px;
 }
 
-button:hover {
-    filter: brightness(1.08);
-}
-
-.settings-form {
-    max-width: 460px;
-}
-
-.date-form {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-
-/* ---------- Dashboard zones ---------- */
+/* -----------------------
+   DASHBOARD ZONES
+----------------------- */
 .zones {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 24px;
-}
-.zone {
-  background: white;
-  padding: 20px;
-  border-left: 6px solid #3b82f6;
-  border-radius: 8px;
-  text-decoration: none;
-  color: black;
-}
-
-/* TABLE */
-.table-wrap { 
-    padding: 24px; 
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    gap: 20px;
+    padding: 20px;
 }
 
 .zone-box {
-    text-decoration: none;
-    color: var(--text);
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px;
+    background: #1f2937;
+    padding: 40px;
     text-align: center;
-    font-weight: 600;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
 }
 
 .zone-box:hover {
-    background: #1e3a8a;
+    background: #2563eb;
 }
 
-/* ---------- Tables ---------- */
-.table-wrap {
-    overflow-x: auto;
-}
-
+/* -----------------------
+   TABLES
+----------------------- */
 table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-    width: 100%;
+    width: 90%;
+    margin: 20px auto;
     border-collapse: collapse;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
 }
-thead {
-  background: #1f2937;
-  color: white;
-}
-th,
-td {
+
+th, td {
     padding: 10px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #1f2937;
     text-align: center;
 }
-th, td {
-  padding: 12px;
-  text-align: center;
-  }
 
-th {
-    background: #0b1222;
+/* -----------------------
+   MACHINE STATUS
+----------------------- */
+.machine-status.on {
+    background: white;
+    color: #0f172a;
+    font-weight: bold;
+    border-radius: 6px;
+    padding: 5px 10px;
 }
-tbody tr:nth-child(even) {
-  background: #f1f5f9;
 
-/* Machine status behavior requested:
-   - OFF => default row/table colors
-   - ON  => white background + readable dark text */
 .machine-status.off {
     background: transparent;
-    color: inherit;
-    font-weight: 400;
+    color: white;
+    font-weight: normal;
+    padding: 5px 10px;
 }
-}
-/* FORMS */
-.center { display: flex; justify-content: center; align-items: center; height: 100vh; }
-.card {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-.machine-status.on {
-    background: #ffffff;
-    color: #0f172a;
-    font-weight: 700;
-}
-}
+
+/* -----------------------
+   FORM ELEMENTS
+----------------------- */
 input, button {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+/* -----------------------
+   SETTINGS FORM
+----------------------- */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.settings-form input {
+    margin-bottom: 15px;
+    width: 50%;
+}
+
+.settings-form button {
+    width: 30%;
+}
+
+/* -----------------------
+   SUCCESS / ERROR MESSAGES
+----------------------- */
+.success {
+    color: #22c55e;
+    text-align: center;
+    margin-top: 10px;
+}
 
 .error {
-    color: #fca5a5;
-}
-}
-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
-
-.success {
-    color: #86efac;
-}
+    color: #f87171;
+    text-align: center;
+    margin-bottom: 10px;
 }
