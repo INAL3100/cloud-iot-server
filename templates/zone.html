@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ zone }}</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
 
-<header>
-    <div class="logo">Nexa Sensors</div>
-    <a href="/" class="acceuil-btn">Accueil</a>
+<header class="topbar">
+    <div class="left-block">
+        <div class="company">TOSYALI ALGERIA</div>
+        <div class="nav">
+            <span class="product">Nexa Sensors</span>
+            <a href="/" class="nav-link">Accueil</a>
+        </div>
+    </div>
 
     <div class="user-menu">
         <span>{{ session.username }}</span>
@@ -22,12 +26,12 @@
 <div class="page">
     <h1>{{ zone }}</h1>
 
-    <form method="get">
+    <form>
         <input type="date" name="date" value="{{ selected_date }}">
-        <button type="submit">Apply</button>
+        <button>Apply</button>
     </form>
 
-    <table>
+    <table class="data-table">
         <tr>
             <th>Sensor</th>
             <th>Time</th>
@@ -35,8 +39,8 @@
             <th>Status</th>
         </tr>
 
-        {% for sensor, readings in data.items() %}
-            {% for time, value, status in readings %}
+        {% for sensor, rows in data.items() %}
+            {% for time, value, status in rows %}
                 <tr>
                     <td>{{ sensor }}</td>
                     <td>{{ time }}</td>

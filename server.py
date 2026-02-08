@@ -9,7 +9,7 @@ app.secret_key = "nexa_sens_secret"
 API_KEY = "NEXA_SENS_DEVICE_KEY"
 
 # -----------------------------
-# ZONES & SENSOR MAPPING
+# ZONES & SENSORS
 # -----------------------------
 ZONES = ["Zone 1", "Zone 2", "Zone 3"]
 
@@ -49,14 +49,15 @@ CREATE TABLE IF NOT EXISTS users (
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS user_zones (
     user_id INTEGER,
-    zone TEXT
+    zone TEXT,
+    UNIQUE(user_id, zone)
 )
 """)
 
 conn.commit()
 
 # -----------------------------
-# DEMO USERS (run once)
+# DEMO USERS
 # -----------------------------
 def create_demo_users():
     users = [
@@ -91,30 +92,24 @@ create_demo_users()
 # HELPERS
 # -----------------------------
 def get_user_zones(user_id):
-    cursor.execute(
-        "SELECT DISTINCT zone FROM user_zones WHERE user_id=?",
-        (user_id,)
-    )
+    cursor.execute("SELECT zone FROM user_zones WHERE user_id=?", (user_id,))
     return [z[0] for z in cursor.fetchall()]
 
 # -----------------------------
-# LOGIN / LOGOUT
+# AUTH
 # -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        u = request.form["username"]
+        p = request.form["password"]
 
-        cursor.execute(
-            "SELECT id, password, role FROM users WHERE username=?",
-            (username,)
-        )
+        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
         user = cursor.fetchone()
 
-        if user and check_password_hash(user[1], password):
+        if user and check_password_hash(user[1], p):
             session["user_id"] = user[0]
-            session["username"] = username
+            session["username"] = u
             session["role"] = user[2]
             return redirect("/")
 
@@ -136,31 +131,31 @@ def settings():
         return redirect("/login")
 
     if request.method == "POST":
-        new_username = request.form["username"]
-        new_password = generate_password_hash(request.form["password"])
-
         cursor.execute(
             "UPDATE users SET username=?, password=? WHERE id=?",
-            (new_username, new_password, session["user_id"])
+            (
+                request.form["username"],
+                generate_password_hash(request.form["password"]),
+                session["user_id"]
+            )
         )
         conn.commit()
-
-        session["username"] = new_username
+        session["username"] = request.form["username"]
         return redirect("/")
 
     return render_template("settings.html")
 
 # -----------------------------
-# RECEIVE SENSOR DATA
+# SENSOR DATA
 # -----------------------------
 @app.route("/data", methods=["POST"])
 def receive_data():
     if request.headers.get("X-API-KEY") != API_KEY:
         return "Unauthorized", 401
 
-    sensor_id = request.form["sensor_id"]
+    sensor = request.form["sensor_id"]
     value = float(request.form["value"])
-    zone = SENSOR_ZONES.get(sensor_id)
+    zone = SENSOR_ZONES.get(sensor)
 
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
@@ -172,7 +167,7 @@ def receive_data():
         WHERE sensor_id=?
         ORDER BY id DESC
         LIMIT 1
-    """, (sensor_id,))
+    """, (sensor,))
     last = cursor.fetchone()
 
     last_value, last_status = last if last else (None, "OFF")
@@ -185,9 +180,8 @@ def receive_data():
         status = last_status
 
     cursor.execute("""
-        INSERT INTO readings
-        VALUES (NULL, ?, ?, ?, ?, ?, ?)
-    """, (zone, sensor_id, date, time_, value, status))
+        INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)
+    """, (zone, sensor, date, time_, value, status))
 
     conn.commit()
     return "OK", 200
@@ -200,43 +194,31 @@ def index():
     if "user_id" not in session:
         return redirect("/login")
 
-    if session["role"] == "manager":
-        zones = ZONES
-    else:
-        zones = get_user_zones(session["user_id"])
-
+    zones = ZONES if session["role"] == "manager" else get_user_zones(session["user_id"])
     return render_template("index.html", zones=zones)
 
-@app.route("/zone/<zone_name>")
-def zone_page(zone_name):
+@app.route("/zone/<zone>")
+def zone_page(zone):
     if "user_id" not in session:
         return redirect("/login")
 
-    if session["role"] != "manager":
-        if zone_name not in get_user_zones(session["user_id"]):
-            return "Access denied", 403
+    if session["role"] != "manager" and zone not in get_user_zones(session["user_id"]):
+        return "Access denied", 403
 
-    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
+    date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
 
     cursor.execute("""
         SELECT sensor_id, time, value, machine_status
         FROM readings
         WHERE zone=? AND date=?
         ORDER BY time
-    """, (zone_name, selected_date))
+    """, (zone, date))
 
-    rows = cursor.fetchall()
     data = {}
+    for s, t, v, m in cursor.fetchall():
+        data.setdefault(s, []).append((t, v, m))
 
-    for sensor, time_, value, status in rows:
-        data.setdefault(sensor, []).append((time_, value, status))
-
-    return render_template(
-        "zone.html",
-        zone=zone_name,
-        data=data,
-        selected_date=selected_date
-    )
+    return render_template("zone.html", zone=zone, data=data, selected_date=date)
 
 if __name__ == "__main__":
     app.run(debug=True)

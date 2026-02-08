@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Settings</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
 
-<header>
-    <div class="logo">Nexa Sensors</div>
-    <a href="/" class="acceuil-btn">Accueil</a>
+<header class="topbar">
+    <div class="left-block">
+        <div class="company">TOSYALI ALGERIA</div>
+        <div class="nav">
+            <span class="product">Nexa Sensors</span>
+            <a href="/" class="nav-link">Accueil</a>
+        </div>
+    </div>
 
     <div class="user-menu">
         <span>{{ session.username }}</span>
@@ -20,11 +24,10 @@
 
 <div class="page">
     <h2>Account Settings</h2>
-
-    <form method="POST" class="settings-form">
-        <input name="username" placeholder="New username" required>
-        <input type="password" name="password" placeholder="New password" required>
-        <button type="submit">Save</button>
+    <form method="POST" style="max-width:400px">
+        <input name="username" placeholder="New username">
+        <input type="password" name="password" placeholder="New password">
+        <button>Save</button>
     </form>
 </div>
 
