@@ -48,14 +48,16 @@ header {
 .user-menu span {
     cursor: pointer;
     display: inline-block;
-    width: 35px;
-    height: 35px;
-    line-height: 35px;
-    text-align: center;
+    padding: 5px 12px;
     border-radius: 50%;
     background: #2563eb;
     color: white;
     font-weight: bold;
+    white-space: nowrap; /* full username shown */
+    text-align: center;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-menu .dropdown {
@@ -170,7 +172,7 @@ td {
 }
 
 tr:hover {
-    background: none; /* remove hover effect */
+    background: #1f2937; /* hover effect restored */
 }
 
 /* -----------------------

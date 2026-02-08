@@ -11,7 +11,7 @@
         <a href="/" class="acceuil-btn">Accueil</a>
     </div>
     <div class="user-menu">
-        <span>{{ session.get('username')[0] }}</span>
+        <span>{{ session.get('username') }}</span>
         <div class="dropdown">
             <a href="/settings">Settings</a>
             <a href="/logout">Logout</a>
