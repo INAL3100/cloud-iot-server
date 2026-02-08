@@ -5,8 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import paho.mqtt.client as mqtt
 import threading, time
 
-from flask import Flask, redirect, render_template, request, session
-from werkzeug.security import check_password_hash, generate_password_hash
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -21,7 +20,6 @@ def get_db():
 
 # ---------- AUTH ----------
 def login_required(f):
-    from functools import wraps
     @wraps(f)
     def wrap(*args, **kwargs):
         if "user_id" not in session:
@@ -84,7 +82,7 @@ cursor.execute(
     """
 )
 
-# Keep user-zone links unique so one engineer sees each zone only once.
+# Keep user-zone links unique
 cursor.execute(
     """
     CREATE UNIQUE INDEX IF NOT EXISTS idx_user_zone_unique
@@ -92,7 +90,7 @@ cursor.execute(
     """
 )
 
-# Remove old duplicated rows (if they already existed).
+# Remove old duplicated rows
 cursor.execute(
     """
     DELETE FROM user_zones
@@ -105,7 +103,6 @@ cursor.execute(
 )
 
 conn.commit()
-
 
 # -----------------------------
 # CREATE DEMO USERS
@@ -143,9 +140,7 @@ def create_demo_users():
 
     conn.commit()
 
-
 create_demo_users()
-
 
 # -----------------------------
 # HELPERS
@@ -157,59 +152,74 @@ def get_user_zones(user_id):
     )
     return [row[0] for row in cursor.fetchall()]
 
-
 # -----------------------------
 # LOGIN / LOGOUT
 # -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        u = request.form["username"]
-        p = request.form["password"]
         username = request.form["username"]
         password = request.form["password"]
 
-        db = get_db()
-        user = db.execute(
-            "SELECT * FROM users WHERE username=?",
-            (u,)
-        ).fetchone()
-        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (username,))
+        cursor.execute("SELECT id, username, password, role FROM users WHERE username=?", (username,))
         user = cursor.fetchone()
 
-        if user and check_password_hash(user["password"], p):
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            return redirect("/index")
-        if user and check_password_hash(user[1], password):
+        if user and check_password_hash(user[2], password):
             session["user_id"] = user[0]
-            session["username"] = username
-            session["role"] = user[2]
-            return redirect("/")
+            session["username"] = user[1]
+            session["role"] = user[3]
+            return redirect("/index")
 
         return render_template("login.html", error="Invalid credentials")
 
     return render_template("login.html")
-
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
 
-@app.route("/index")
+# -----------------------------
+# DASHBOARD
+# -----------------------------
+@app.route("/")
 @login_required
 def index():
-    db = get_db()
-    zones = db.execute("SELECT * FROM zones").fetchall()
+    if session["role"] == "manager":
+        zones = ZONES
+    else:
+        zones = get_user_zones(session["user_id"])
+
     return render_template("index.html", zones=zones)
 
-@app.route("/zone/<int:zone_id>")
+@app.route("/zone/<zone_name>")
 @login_required
-def zone(zone_id):
-    db = get_db()
-    zone = db.execute("SELECT * FROM zones WHERE id=?", (zone_id,)).fetchone()
-    return render_template("zone.html", zone=zone)
+def zone_page(zone_name):
+    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
+        return "Access denied", 403
+
+    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
+
+    cursor.execute(
+        """
+        SELECT sensor_id, date, time, value, machine_status
+        FROM readings
+        WHERE zone=? AND date=?
+        ORDER BY time
+        """,
+        (zone_name, selected_date),
+    )
+    rows = cursor.fetchall()
+
+    data = {}
+    for sensor_id, date, time_, value, machine_status in rows:
+        if sensor_id not in data:
+            data[sensor_id] = []
+        data[sensor_id].append((date, time_, value, machine_status))
+
+    return render_template(
+        "zone.html", zone=zone_name, data=data, selected_date=selected_date
+    )
 
 # -----------------------------
 # SETTINGS PAGE
@@ -217,20 +227,29 @@ def zone(zone_id):
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
-    if "user_id" not in session:
-        return redirect("/login")
-
     if request.method == "POST":
-        new_pw = generate_password_hash(request.form["password"])
-        db = get_db()
-        db.execute(
-            "UPDATE users SET password=? WHERE id=?",
-            (new_pw, session["user_id"])
-        )
-        db.commit()
-        return redirect("/index")
+        new_username = request.form["username"].strip()
+        new_password = request.form["password"]
 
-    return render_template("settings.html")
+        if not new_username or not new_password:
+            return render_template(
+                "settings.html", message="Username and password are required."
+            )
+
+        try:
+            cursor.execute(
+                "UPDATE users SET username=?, password=? WHERE id=?",
+                (new_username, generate_password_hash(new_password), session["user_id"]),
+            )
+            conn.commit()
+            session["username"] = new_username
+            return render_template("settings.html", message="Changes saved successfully.")
+        except sqlite3.IntegrityError:
+            return render_template(
+                "settings.html", message="That username is already in use."
+            )
+
+    return render_template("settings.html", message="")
 
 # ---------- LIVE DATA ----------
 latest_data = {}
@@ -259,29 +278,6 @@ def mqtt_loop():
     client.loop_forever()
 
 threading.Thread(target=mqtt_loop, daemon=True).start()
-        new_username = request.form["username"].strip()
-        new_password = request.form["password"]
-
-        if not new_username or not new_password:
-            return render_template(
-                "settings.html", message="Username and password are required."
-            )
-
-        try:
-            cursor.execute(
-                "UPDATE users SET username=?, password=? WHERE id=?",
-                (new_username, generate_password_hash(new_password), session["user_id"]),
-            )
-            conn.commit()
-            session["username"] = new_username
-            return render_template("settings.html", message="Changes saved successfully.")
-        except sqlite3.IntegrityError:
-            return render_template(
-                "settings.html", message="That username is already in use."
-            )
-
-    return render_template("settings.html", message="")
-
 
 # -----------------------------
 # RECEIVE SENSOR DATA
@@ -327,55 +323,6 @@ def receive_data():
     )
     conn.commit()
     return "OK", 200
-
-
-# -----------------------------
-# DASHBOARD
-# -----------------------------
-@app.route("/")
-def index():
-    if "user_id" not in session:
-        return redirect("/login")
-
-    if session["role"] == "manager":
-        zones = ZONES
-    else:
-        zones = get_user_zones(session["user_id"])
-
-    return render_template("index.html", zones=zones)
-
-
-@app.route("/zone/<zone_name>")
-def zone_page(zone_name):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
-        return "Access denied", 403
-
-    selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
-
-    cursor.execute(
-        """
-        SELECT sensor_id, date, time, value, machine_status
-        FROM readings
-        WHERE zone=? AND date=?
-        ORDER BY time
-        """,
-        (zone_name, selected_date),
-    )
-    rows = cursor.fetchall()
-
-    data = {}
-    for sensor_id, date, time_, value, machine_status in rows:
-        if sensor_id not in data:
-            data[sensor_id] = []
-        data[sensor_id].append((date, time_, value, machine_status))
-
-    return render_template(
-        "zone.html", zone=zone_name, data=data, selected_date=selected_date
-    )
-
 
 if __name__ == "__main__":
     app.run(debug=True)
