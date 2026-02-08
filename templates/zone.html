@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>{{ zone }} - Nexa Sensors</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='PRO.css') }}">
 </head>
 <body>
 
@@ -22,7 +22,7 @@
     </div>
 </div>
 
-<h2>{{ zone }}</h2>
+<h2 class="subtitle">{{ zone }}</h2>
 
 <form method="get" class="date-form">
     <label>Select Date:</label>
@@ -37,19 +37,16 @@
         <th>Time</th>
         <th>Machine Status</th>
         <th>Value</th>
-        <th>Daily Avg</th>
     </tr>
 
     {% for sensor, readings in data.items() %}
-        {% set avg = (readings | map(attribute=2) | sum) / (readings | length) %}
         {% for date, time_, value, status in readings %}
             <tr>
-                <td>{{ sensor }}</td>
-                <td>{{ date }}</td>
-                <td>{{ time_ }}</td>
-                <td class="machine-status {% if status == 'ON' %}on{% else %}off{% endif %}">{{ status }}</td>
-                <td>{{ value }}</td>
-                <td>{{ "%.2f"|format(avg) }}</td>
+                <td class="center-text">{{ sensor }}</td>
+                <td class="center-text">{{ date }}</td>
+                <td class="center-text">{{ time_ }}</td>
+                <td class="machine-status {% if status == 'ON' %}on{% endif %}">{{ status }}</td>
+                <td class="center-text">{{ value }}</td>
             </tr>
         {% endfor %}
     {% endfor %}

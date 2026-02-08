@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, session
+from flask import Flask, request, render_template, redirect, session, url_for
 from datetime import datetime
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -25,7 +25,6 @@ SENSOR_ZONES = {
 conn = sqlite3.connect("sensors.db", check_same_thread=False)
 cursor = conn.cursor()
 
-# Create readings table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +37,6 @@ CREATE TABLE IF NOT EXISTS readings (
 )
 """)
 
-# Create users table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,17 +46,17 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """)
 
-# Create user_zones table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS user_zones (
     user_id INTEGER,
     zone TEXT
 )
 """)
+
 conn.commit()
 
 # -----------------------------
-# DEMO USERS (run once)
+# CREATE DEMO USERS
 # -----------------------------
 def create_demo_users():
     users = [
@@ -73,9 +71,9 @@ def create_demo_users():
             "INSERT OR IGNORE INTO users VALUES (NULL, ?, ?, ?)",
             (u, generate_password_hash(p), r)
         )
-
     conn.commit()
 
+    # Assign zones
     cursor.execute("SELECT id, username FROM users")
     for uid, uname in cursor.fetchall():
         if uname == "eng1":
@@ -86,20 +84,14 @@ def create_demo_users():
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
     conn.commit()
 
-create_demo_users()  # Run once, then comment out
+create_demo_users()  # Run once, then you can comment out
 
 # -----------------------------
 # HELPERS
 # -----------------------------
 def get_user_zones(user_id):
     cursor.execute("SELECT zone FROM user_zones WHERE user_id=?", (user_id,))
-    zones = [z[0] for z in cursor.fetchall()]
-    return list(set(zones))  # remove duplicates
-
-def get_username(user_id):
-    cursor.execute("SELECT username FROM users WHERE id=?", (user_id,))
-    row = cursor.fetchone()
-    return row[0] if row else ""
+    return [z[0] for z in cursor.fetchall()]
 
 # -----------------------------
 # LOGIN
@@ -114,9 +106,9 @@ def login():
         if user and check_password_hash(user[1], p):
             session["user_id"] = user[0]
             session["role"] = user[2]
-            return redirect("/")
+            return redirect(url_for("index"))
         return render_template("login.html", error="Invalid credentials")
-    return render_template("login.html")
+    return render_template("login.html", error=None)
 
 @app.route("/logout")
 def logout():
@@ -124,25 +116,27 @@ def logout():
     return redirect("/login")
 
 # -----------------------------
-# SETTINGS
+# SETTINGS PAGE
 # -----------------------------
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if "user_id" not in session:
         return redirect("/login")
-    user_id = session["user_id"]
-    username = get_username(user_id)
+    
+    cursor.execute("SELECT username FROM users WHERE id=?", (session["user_id"],))
+    username = cursor.fetchone()[0]
+
     message = ""
     if request.method == "POST":
-        new_username = request.form.get("username")
-        new_password = request.form.get("password")
+        new_username = request.form["username"]
+        new_password = request.form["password"]
         if new_username:
-            cursor.execute("UPDATE users SET username=? WHERE id=?", (new_username, user_id))
-            message = "Username updated!"
+            cursor.execute("UPDATE users SET username=? WHERE id=?", (new_username, session["user_id"]))
         if new_password:
-            cursor.execute("UPDATE users SET password=? WHERE id=?", (generate_password_hash(new_password), user_id))
-            message = "Password updated!"
+            cursor.execute("UPDATE users SET password=? WHERE id=?", 
+                           (generate_password_hash(new_password), session["user_id"]))
         conn.commit()
+        message = "Settings updated!"
     return render_template("settings.html", username=username, message=message)
 
 # -----------------------------
@@ -152,28 +146,24 @@ def settings():
 def receive_data():
     if request.headers.get("X-API-KEY") != API_KEY:
         return "Unauthorized", 401
-
     sensor_id = request.form.get("sensor_id")
     value = float(request.form.get("value"))
     zone = SENSOR_ZONES.get(sensor_id)
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time_ = now.strftime("%H:%M:%S")
-
     cursor.execute(
         "SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1",
         (sensor_id,)
     )
     last = cursor.fetchone()
     last_value, last_status = last if last else (None, "OFF")
-
     if value > 40:
         status = "OFF"
     elif last_value and last_value < 25 and value < 25:
         status = "ON"
     else:
         status = last_status
-
     cursor.execute(
         "INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)",
         (zone, sensor_id, date, time_, value, status)
@@ -192,30 +182,29 @@ def index():
         zones = ZONES
     else:
         zones = get_user_zones(session["user_id"])
-    username = get_username(session["user_id"])
+    cursor.execute("SELECT username FROM users WHERE id=?", (session["user_id"],))
+    username = cursor.fetchone()[0]
     return render_template("index.html", zones=zones, username=username)
 
 @app.route("/zone/<zone_name>")
 def zone_page(zone_name):
     if "user_id" not in session:
         return redirect("/login")
-    if session["role"] != "manager":
-        if zone_name not in get_user_zones(session["user_id"]):
-            return "Access denied", 403
+    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
+        return "Access denied", 403
     selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
-
     cursor.execute("""
         SELECT sensor_id, date, time, value, machine_status
         FROM readings
         WHERE zone=? AND date=?
         ORDER BY time
     """, (zone_name, selected_date))
-
     rows = cursor.fetchall()
     data = {}
     for s, d, t, v, m in rows:
         data.setdefault(s, []).append((d, t, v, m))
-    username = get_username(session["user_id"])
+    cursor.execute("SELECT username FROM users WHERE id=?", (session["user_id"],))
+    username = cursor.fetchone()[0]
     return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date, username=username)
 
 if __name__ == "__main__":

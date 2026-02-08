@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Settings - Nexa Sensors</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='PRO.css') }}">
 </head>
 <body>
 
@@ -15,21 +15,24 @@
         <div class="user-dropdown">
             <span>{{ username }}</span>
             <div class="dropdown-content">
-                <a href="/settings">Settings</a>
                 <a href="/logout">Logout</a>
             </div>
         </div>
     </div>
 </div>
 
-<h2>Settings</h2>
-<p>{{ message }}</p>
-<form method="POST">
-    <label>New Username:</label><br>
-    <input type="text" name="username"><br>
-    <label>New Password:</label><br>
-    <input type="password" name="password"><br><br>
-    <button type="submit">Save</button>
+<h2 class="subtitle">Settings</h2>
+
+{% if message %}
+<p style="color: lightgreen; text-align:center;">{{ message }}</p>
+{% endif %}
+
+<form method="post" class="settings-form">
+    <label>Change Username:</label>
+    <input type="text" name="username" placeholder="{{ username }}">
+    <label>Change Password:</label>
+    <input type="password" name="password" placeholder="New Password">
+    <button type="submit">Update</button>
 </form>
 
 </body>
