@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Nexa Sens Dashboard</title>
+    <title>Nexa Sensors</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
+
 <header>
-    <div class="logo">Nexa Sens</div>
+    <div class="logo">Nexa Sensors</div>
     <a href="/" class="acceuil-btn">Accueil</a>
+
     <div class="user-menu">
-        <span>{{ session.get('username') }}</span>
+        <span>{{ session.username }}</span>
         <div class="dropdown">
             <a href="/settings">Settings</a>
             <a href="/logout">Logout</a>
@@ -17,11 +19,15 @@
     </div>
 </header>
 
-<h1 class="title">Dashboard</h1>
-<div class="zones">
-    {% for zone in zones %}
-        <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
-    {% endfor %}
+<div class="page">
+    <h1>Dashboard</h1>
+
+    <div class="zones">
+        {% for zone in zones %}
+            <a class="zone-box" href="/zone/{{ zone }}">{{ zone }}</a>
+        {% endfor %}
+    </div>
 </div>
+
 </body>
 </html>

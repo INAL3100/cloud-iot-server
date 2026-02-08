@@ -5,26 +5,28 @@
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
+
 <header>
-    <div class="logo">Nexa Sens</div>
+    <div class="logo">Nexa Sensors</div>
     <a href="/" class="acceuil-btn">Accueil</a>
+
     <div class="user-menu">
-        <span>{{ session.get('username') }}</span>
+        <span>{{ session.username }}</span>
         <div class="dropdown">
-            <a href="/settings">Settings</a>
             <a href="/logout">Logout</a>
         </div>
     </div>
 </header>
 
-<div class="content">
-    <h2>Change Username / Password</h2>
+<div class="page">
+    <h2>Account Settings</h2>
+
     <form method="POST" class="settings-form">
-        <input type="text" name="username" placeholder="New Username" required><br><br>
-        <input type="password" name="password" placeholder="New Password" required><br><br>
-        <button type="submit">Save Changes</button>
+        <input name="username" placeholder="New username" required>
+        <input type="password" name="password" placeholder="New password" required>
+        <button type="submit">Save</button>
     </form>
-    {% if message %}<p class="success">{{ message }}</p>{% endif %}
 </div>
+
 </body>
 </html>

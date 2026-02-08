@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ zone }} - Nexa Sens</title>
+    <title>{{ zone }}</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
+
 <header>
-    <div class="logo">Nexa Sens</div>
+    <div class="logo">Nexa Sensors</div>
     <a href="/" class="acceuil-btn">Accueil</a>
+
     <div class="user-menu">
-        <span>{{ session.get('username') }}</span>
+        <span>{{ session.username }}</span>
         <div class="dropdown">
             <a href="/settings">Settings</a>
             <a href="/logout">Logout</a>
@@ -17,30 +19,36 @@
     </div>
 </header>
 
-<h1>{{ zone }}</h1>
+<div class="page">
+    <h1>{{ zone }}</h1>
 
-<form method="get">
-    <input type="date" name="date" value="{{ selected_date }}">
-    <button type="submit">Apply</button>
-</form>
+    <form method="get">
+        <input type="date" name="date" value="{{ selected_date }}">
+        <button type="submit">Apply</button>
+    </form>
 
-<table>
-<tr>
-    <th>Sensor</th>
-    <th>Time</th>
-    <th>Value</th>
-    <th>Machine Status</th>
-</tr>
-{% for sensor, readings in data.items() %}
-    {% for date, time_, value, status in readings %}
-    <tr>
-        <td>{{ sensor }}</td>
-        <td>{{ time_ }}</td>
-        <td>{{ value }}</td>
-        <td class="machine-status {% if status=='ON' %}on{% else %}off{% endif %}">{{ status }}</td>
-    </tr>
-    {% endfor %}
-{% endfor %}
-</table>
+    <table>
+        <tr>
+            <th>Sensor</th>
+            <th>Time</th>
+            <th>Value</th>
+            <th>Status</th>
+        </tr>
+
+        {% for sensor, readings in data.items() %}
+            {% for time, value, status in readings %}
+                <tr>
+                    <td>{{ sensor }}</td>
+                    <td>{{ time }}</td>
+                    <td>{{ value }}</td>
+                    <td class="machine-status {{ 'on' if status=='ON' else 'off' }}">
+                        {{ status }}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+</div>
+
 </body>
 </html>

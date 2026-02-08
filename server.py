@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS user_zones (
 conn.commit()
 
 # -----------------------------
-# CREATE DEMO USERS
+# DEMO USERS (run once)
 # -----------------------------
 def create_demo_users():
     users = [
@@ -78,19 +78,23 @@ def create_demo_users():
     for uid, uname in cursor.fetchall():
         if uname == "eng1":
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 1"))
-        elif uname == "eng2":
+        if uname == "eng2":
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 2"))
-        elif uname == "eng3":
+        if uname == "eng3":
             cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
+
     conn.commit()
 
-create_demo_users()  # run once then comment
+create_demo_users()
 
 # -----------------------------
 # HELPERS
 # -----------------------------
 def get_user_zones(user_id):
-    cursor.execute("SELECT zone FROM user_zones WHERE user_id=?", (user_id,))
+    cursor.execute(
+        "SELECT DISTINCT zone FROM user_zones WHERE user_id=?",
+        (user_id,)
+    )
     return [z[0] for z in cursor.fetchall()]
 
 # -----------------------------
@@ -99,17 +103,23 @@ def get_user_zones(user_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        u = request.form["username"]
-        p = request.form["password"]
-        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
+        username = request.form["username"]
+        password = request.form["password"]
+
+        cursor.execute(
+            "SELECT id, password, role FROM users WHERE username=?",
+            (username,)
+        )
         user = cursor.fetchone()
 
-        if user and check_password_hash(user[1], p):
+        if user and check_password_hash(user[1], password):
             session["user_id"] = user[0]
-            session["username"] = u
+            session["username"] = username
             session["role"] = user[2]
             return redirect("/")
+
         return render_template("login.html", error="Invalid credentials")
+
     return render_template("login.html")
 
 @app.route("/logout")
@@ -118,27 +128,27 @@ def logout():
     return redirect("/login")
 
 # -----------------------------
-# SETTINGS PAGE
+# SETTINGS
 # -----------------------------
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if "user_id" not in session:
         return redirect("/login")
 
-    message = ""
     if request.method == "POST":
         new_username = request.form["username"]
         new_password = generate_password_hash(request.form["password"])
+
         cursor.execute(
             "UPDATE users SET username=?, password=? WHERE id=?",
             (new_username, new_password, session["user_id"])
         )
         conn.commit()
+
         session["username"] = new_username
-        message = "Changes saved successfully"
         return redirect("/")
 
-    return render_template("settings.html", message=message)
+    return render_template("settings.html")
 
 # -----------------------------
 # RECEIVE SENSOR DATA
@@ -148,19 +158,23 @@ def receive_data():
     if request.headers.get("X-API-KEY") != API_KEY:
         return "Unauthorized", 401
 
-    sensor_id = request.form.get("sensor_id")
-    value = float(request.form.get("value"))
+    sensor_id = request.form["sensor_id"]
+    value = float(request.form["value"])
     zone = SENSOR_ZONES.get(sensor_id)
 
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time_ = now.strftime("%H:%M:%S")
 
-    cursor.execute(
-        "SELECT value, machine_status FROM readings WHERE sensor_id=? ORDER BY id DESC LIMIT 1",
-        (sensor_id,)
-    )
+    cursor.execute("""
+        SELECT value, machine_status
+        FROM readings
+        WHERE sensor_id=?
+        ORDER BY id DESC
+        LIMIT 1
+    """, (sensor_id,))
     last = cursor.fetchone()
+
     last_value, last_status = last if last else (None, "OFF")
 
     if value > 40:
@@ -170,10 +184,11 @@ def receive_data():
     else:
         status = last_status
 
-    cursor.execute(
-        "INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)",
-        (zone, sensor_id, date, time_, value, status)
-    )
+    cursor.execute("""
+        INSERT INTO readings
+        VALUES (NULL, ?, ?, ?, ?, ?, ?)
+    """, (zone, sensor_id, date, time_, value, status))
+
     conn.commit()
     return "OK", 200
 
@@ -184,29 +199,44 @@ def receive_data():
 def index():
     if "user_id" not in session:
         return redirect("/login")
-    zones = ZONES if session["role"] == "manager" else get_user_zones(session["user_id"])
+
+    if session["role"] == "manager":
+        zones = ZONES
+    else:
+        zones = get_user_zones(session["user_id"])
+
     return render_template("index.html", zones=zones)
 
 @app.route("/zone/<zone_name>")
 def zone_page(zone_name):
     if "user_id" not in session:
         return redirect("/login")
-    if session["role"] != "manager" and zone_name not in get_user_zones(session["user_id"]):
-        return "Access denied", 403
+
+    if session["role"] != "manager":
+        if zone_name not in get_user_zones(session["user_id"]):
+            return "Access denied", 403
 
     selected_date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
+
     cursor.execute("""
-        SELECT sensor_id, date, time, value, machine_status
+        SELECT sensor_id, time, value, machine_status
         FROM readings
         WHERE zone=? AND date=?
         ORDER BY time
     """, (zone_name, selected_date))
+
     rows = cursor.fetchall()
     data = {}
-    for s, d, t, v, m in rows:
-        data.setdefault(s, []).append((d, t, v, m))
 
-    return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date)
+    for sensor, time_, value, status in rows:
+        data.setdefault(sensor, []).append((time_, value, status))
+
+    return render_template(
+        "zone.html",
+        zone=zone_name,
+        data=data,
+        selected_date=selected_date
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

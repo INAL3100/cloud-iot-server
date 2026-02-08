@@ -1,165 +1,106 @@
-/* -----------------------
-   GENERAL BODY STYLES
------------------------ */
+/* =====================
+   GENERAL
+===================== */
 body {
+    margin: 0;
     font-family: "Segoe UI", sans-serif;
     background: #0f172a;
     color: white;
-    margin: 0;
 }
 
-/* -----------------------
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =====================
    HEADER
------------------------ */
+===================== */
 header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     background: #1f2937;
     padding: 15px 30px;
 }
 
 .logo {
+    font-size: 22px;
     font-weight: bold;
-    font-size: 24px;
 }
 
 .acceuil-btn {
-    color: white;
-    text-decoration: none;
-    margin-right: 20px;
+    margin-left: 20px;
 }
 
-/* -----------------------
+/* =====================
    USER MENU
------------------------ */
+===================== */
 .user-menu {
     position: relative;
-}
-
-.user-menu span {
     cursor: pointer;
 }
 
-.user-menu .dropdown {
+.user-menu span {
+    font-weight: bold;
+}
+
+.dropdown {
     display: none;
     position: absolute;
     right: 0;
+    top: 25px;
     background: #111827;
     padding: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .user-menu:hover .dropdown {
     display: block;
 }
 
-.user-menu .dropdown a {
+.dropdown a {
     display: block;
-    color: white;
-    text-decoration: none;
     margin: 5px 0;
 }
 
-/* -----------------------
-   LOGIN PAGE
------------------------ */
+/* =====================
+   PAGE CONTAINER
+===================== */
+.page {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+}
+
+/* =====================
+   LOGIN
+===================== */
 .login-container {
     display: flex;
+    height: 100vh;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
 .login-box {
     background: #111827;
-    padding: 50px;
+    padding: 60px;
     border-radius: 20px;
+    width: 380px;
     text-align: center;
-    width: 350px;
-}
-
-.login-box h1 {
-    margin-bottom: 30px;
 }
 
 .login-box input {
-    padding: 10px 14px;
-    border-radius: 6px;
-    border: none;
-    width: 80%;
+    width: 100%;
+    margin-bottom: 15px;
 }
 
-.login-box button {
-    padding: 10px 14px;
-    border-radius: 6px;
-    border: none;
-    background: #2563eb;
-    color: white;
-    cursor: pointer;
-    width: 50%;
-    margin-top: 15px;
-}
-
-/* -----------------------
-   DASHBOARD ZONES
------------------------ */
-.zones {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.zone-box {
-    background: #1f2937;
-    padding: 40px;
-    text-align: center;
-    border-radius: 20px;
-    text-decoration: none;
-    color: white;
-    font-weight: bold;
-}
-
-.zone-box:hover {
-    background: #2563eb;
-}
-
-/* -----------------------
-   TABLES
------------------------ */
-table {
-    width: 90%;
-    margin: 20px auto;
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 10px;
-    border-bottom: 1px solid #1f2937;
-    text-align: center;
-}
-
-/* -----------------------
-   MACHINE STATUS
------------------------ */
-.machine-status.on {
-    background: white;
-    color: #0f172a;
-    font-weight: bold;
-}
-
-.machine-status.off {
-    background: none;
-    color: white;
-    font-weight: normal;
-}
-
-/* -----------------------
-   FORM ELEMENTS
------------------------ */
+/* =====================
+   BUTTONS & INPUTS
+===================== */
 input, button {
-    padding: 10px 14px;
+    padding: 10px;
     border-radius: 6px;
     border: none;
 }
@@ -170,21 +111,60 @@ button {
     cursor: pointer;
 }
 
-/* -----------------------
-   SETTINGS FORM
------------------------ */
+/* =====================
+   ZONES
+===================== */
+.zones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.zone-box {
+    background: #1f2937;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.zone-box:hover {
+    background: #2563eb;
+}
+
+/* =====================
+   TABLE
+===================== */
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #1f2937;
+    text-align: center;
+}
+
+/* =====================
+   MACHINE STATUS
+===================== */
+.machine-status.on {
+    background: white;
+    color: #0f172a;
+    font-weight: bold;
+}
+
+.machine-status.off {
+    background: transparent;
+    color: white;
+}
+
+/* =====================
+   SETTINGS
+===================== */
 .settings-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 30px;
-}
-
-.settings-form input {
-    margin-bottom: 15px;
-    width: 50%;
-}
-
-.settings-form button {
-    width: 30%;
+    max-width: 400px;
+    margin: auto;
 }
