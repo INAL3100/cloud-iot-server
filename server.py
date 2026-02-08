@@ -1,119 +1,47 @@
-from flask import Flask, request, render_template, redirect, session
-from datetime import datetime
+from flask import Flask, render_template, request, redirect, session, jsonify
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+import paho.mqtt.client as mqtt
+import threading, time
 
 app = Flask(__name__)
-app.secret_key = "nexa_sens_secret"
+app.secret_key = "supersecretkey"
 
-API_KEY = "NEXA_SENS_DEVICE_KEY"
+DB = "database.db"
 
-# -----------------------------
-# ZONES & SENSORS
-# -----------------------------
-ZONES = ["Zone 1", "Zone 2", "Zone 3"]
+# ---------- DB ----------
+def get_db():
+    conn = sqlite3.connect(DB)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-SENSOR_ZONES = {
-    "SENSOR_1": "Zone 1",
-    "SENSOR_2": "Zone 2",
-    "SENSOR_3": "Zone 3",
-}
+# ---------- AUTH ----------
+def login_required(f):
+    from functools import wraps
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect("/login")
+        return f(*args, **kwargs)
+    return wrap
 
-# -----------------------------
-# DATABASE
-# -----------------------------
-conn = sqlite3.connect("sensors.db", check_same_thread=False)
-cursor = conn.cursor()
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS readings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    zone TEXT,
-    sensor_id TEXT,
-    date TEXT,
-    time TEXT,
-    value REAL,
-    machine_status TEXT
-)
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT
-)
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS user_zones (
-    user_id INTEGER,
-    zone TEXT,
-    UNIQUE(user_id, zone)
-)
-""")
-
-conn.commit()
-
-# -----------------------------
-# DEMO USERS
-# -----------------------------
-def create_demo_users():
-    users = [
-        ("manager", "1234", "manager"),
-        ("eng1", "1234", "engineer"),
-        ("eng2", "1234", "engineer"),
-        ("eng3", "1234", "engineer"),
-    ]
-
-    for u, p, r in users:
-        cursor.execute(
-            "INSERT OR IGNORE INTO users VALUES (NULL, ?, ?, ?)",
-            (u, generate_password_hash(p), r)
-        )
-
-    conn.commit()
-
-    cursor.execute("SELECT id, username FROM users")
-    for uid, uname in cursor.fetchall():
-        if uname == "eng1":
-            cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 1"))
-        if uname == "eng2":
-            cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 2"))
-        if uname == "eng3":
-            cursor.execute("INSERT OR IGNORE INTO user_zones VALUES (?, ?)", (uid, "Zone 3"))
-
-    conn.commit()
-
-create_demo_users()
-
-# -----------------------------
-# HELPERS
-# -----------------------------
-def get_user_zones(user_id):
-    cursor.execute("SELECT zone FROM user_zones WHERE user_id=?", (user_id,))
-    return [z[0] for z in cursor.fetchall()]
-
-# -----------------------------
-# AUTH
-# -----------------------------
+# ---------- ROUTES ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         u = request.form["username"]
         p = request.form["password"]
 
-        cursor.execute("SELECT id, password, role FROM users WHERE username=?", (u,))
-        user = cursor.fetchone()
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM users WHERE username=?",
+            (u,)
+        ).fetchone()
 
-        if user and check_password_hash(user[1], p):
-            session["user_id"] = user[0]
-            session["username"] = u
-            session["role"] = user[2]
-            return redirect("/")
-
-        return render_template("login.html", error="Invalid credentials")
+        if user and check_password_hash(user["password"], p):
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            return redirect("/index")
 
     return render_template("login.html")
 
@@ -122,103 +50,62 @@ def logout():
     session.clear()
     return redirect("/login")
 
-# -----------------------------
-# SETTINGS
-# -----------------------------
-@app.route("/settings", methods=["GET", "POST"])
-def settings():
-    if "user_id" not in session:
-        return redirect("/login")
+@app.route("/index")
+@login_required
+def index():
+    db = get_db()
+    zones = db.execute("SELECT * FROM zones").fetchall()
+    return render_template("index.html", zones=zones)
 
+@app.route("/zone/<int:zone_id>")
+@login_required
+def zone(zone_id):
+    db = get_db()
+    zone = db.execute("SELECT * FROM zones WHERE id=?", (zone_id,)).fetchone()
+    return render_template("zone.html", zone=zone)
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
     if request.method == "POST":
-        cursor.execute(
-            "UPDATE users SET username=?, password=? WHERE id=?",
-            (
-                request.form["username"],
-                generate_password_hash(request.form["password"]),
-                session["user_id"]
-            )
+        new_pw = generate_password_hash(request.form["password"])
+        db = get_db()
+        db.execute(
+            "UPDATE users SET password=? WHERE id=?",
+            (new_pw, session["user_id"])
         )
-        conn.commit()
-        session["username"] = request.form["username"]
-        return redirect("/")
+        db.commit()
+        return redirect("/index")
 
     return render_template("settings.html")
 
-# -----------------------------
-# SENSOR DATA
-# -----------------------------
-@app.route("/data", methods=["POST"])
-def receive_data():
-    if request.headers.get("X-API-KEY") != API_KEY:
-        return "Unauthorized", 401
+# ---------- LIVE DATA ----------
+latest_data = {}
 
-    sensor = request.form["sensor_id"]
-    value = float(request.form["value"])
-    zone = SENSOR_ZONES.get(sensor)
+@app.route("/api/readings")
+@login_required
+def api_readings():
+    return jsonify(latest_data)
 
-    now = datetime.now()
-    date = now.strftime("%Y-%m-%d")
-    time_ = now.strftime("%H:%M:%S")
+# ---------- MQTT ----------
+def on_message(client, userdata, msg):
+    payload = msg.payload.decode()
+    sensor, value = payload.split(",")
 
-    cursor.execute("""
-        SELECT value, machine_status
-        FROM readings
-        WHERE sensor_id=?
-        ORDER BY id DESC
-        LIMIT 1
-    """, (sensor,))
-    last = cursor.fetchone()
+    latest_data[sensor] = {
+        "value": value,
+        "time": time.strftime("%H:%M:%S"),
+        "status": "ON"
+    }
 
-    last_value, last_status = last if last else (None, "OFF")
+def mqtt_loop():
+    client = mqtt.Client()
+    client.on_message = on_message
+    client.connect("localhost", 1883)
+    client.subscribe("nexa/sensors/#")
+    client.loop_forever()
 
-    if value > 40:
-        status = "OFF"
-    elif last_value and last_value < 25 and value < 25:
-        status = "ON"
-    else:
-        status = last_status
-
-    cursor.execute("""
-        INSERT INTO readings VALUES (NULL, ?, ?, ?, ?, ?, ?)
-    """, (zone, sensor, date, time_, value, status))
-
-    conn.commit()
-    return "OK", 200
-
-# -----------------------------
-# DASHBOARD
-# -----------------------------
-@app.route("/")
-def index():
-    if "user_id" not in session:
-        return redirect("/login")
-
-    zones = ZONES if session["role"] == "manager" else get_user_zones(session["user_id"])
-    return render_template("index.html", zones=zones)
-
-@app.route("/zone/<zone>")
-def zone_page(zone):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    if session["role"] != "manager" and zone not in get_user_zones(session["user_id"]):
-        return "Access denied", 403
-
-    date = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
-
-    cursor.execute("""
-        SELECT sensor_id, time, value, machine_status
-        FROM readings
-        WHERE zone=? AND date=?
-        ORDER BY time
-    """, (zone, date))
-
-    data = {}
-    for s, t, v, m in cursor.fetchall():
-        data.setdefault(s, []).append((t, v, m))
-
-    return render_template("zone.html", zone=zone, data=data, selected_date=date)
+threading.Thread(target=mqtt_loop, daemon=True).start()
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,35 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="/static/PRO.css">
+  <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
 
 <header class="topbar">
-    <div class="left-block">
-        <div class="company">TOSYALI ALGERIA</div>
-        <div class="nav">
-            <span class="product">Nexa Sensors</span>
-            <a href="/" class="nav-link">Accueil</a>
-        </div>
+  <div class="topbar-left">
+    <div class="brand">NEXA SENS</div>
+    <a href="/index" class="nav-link">Accueil</a>
+  </div>
+  <div class="topbar-right">
+    <div class="user-menu">{{ session['username'] }}
+      <div class="dropdown">
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+      </div>
     </div>
-
-    <div class="user-menu">
-        <span>{{ session.username }}</span>
-        <div class="dropdown">
-            <a href="/logout">Logout</a>
-        </div>
-    </div>
+  </div>
 </header>
 
-<div class="page">
-    <h2>Account Settings</h2>
-    <form method="POST" style="max-width:400px">
-        <input name="username" placeholder="New username">
-        <input type="password" name="password" placeholder="New password">
-        <button>Save</button>
-    </form>
-</div>
+<form method="post" class="card">
+  <h2>Change Password</h2>
+  <input type="password" name="password" required>
+  <button>Save</button>
+</form>
 
 </body>
 </html>

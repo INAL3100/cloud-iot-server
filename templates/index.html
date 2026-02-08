@@ -1,36 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="/static/PRO.css">
+  <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
 
 <header class="topbar">
-    <div class="left-block">
-        <div class="company">TOSYALI ALGERIA</div>
-        <div class="nav">
-            <span class="product">Nexa Sensors</span>
-            <a href="/" class="nav-link">Accueil</a>
-        </div>
-    </div>
+  <div class="topbar-left">
+    <div class="brand">NEXA SENS</div>
+    <a href="/index" class="nav-link">Accueil</a>
+  </div>
 
+  <div class="topbar-right">
     <div class="user-menu">
-        <span>{{ session.username }}</span>
-        <div class="dropdown">
-            <a href="/settings">Settings</a>
-            <a href="/logout">Logout</a>
-        </div>
+      {{ session['username'] }}
+      <div class="dropdown">
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+      </div>
     </div>
+  </div>
 </header>
 
-<div class="page">
-    <h1>Dashboard</h1>
-    <div class="zones">
-        {% for zone in zones %}
-            <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
-        {% endfor %}
-    </div>
+<div class="zones">
+  {% for z in zones %}
+    <a class="zone" href="/zone/{{ z.id }}">{{ z.name }}</a>
+  {% endfor %}
 </div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Sensor ID</th>
+      <th>Time</th>
+      <th>Machine Status</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody id="data">
+    <tr>
+      <td>S1</td>
+      <td id="time-S1">--</td>
+      <td>ON</td>
+      <td id="val-S1">--</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<script>
+setInterval(() => {
+  fetch("/api/readings")
+    .then(r => r.json())
+    .then(d => {
+      for (let s in d) {
+        document.getElementById("val-"+s).innerText = d[s].value;
+        document.getElementById("time-"+s).innerText = d[s].time;
+      }
+    });
+}, 2000);
+</script>
 
 </body>
 </html>
