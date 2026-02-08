@@ -1,43 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ zone }} - NexaSens</title>
+    <title>{{ zone }} - Nexa Sensors</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<div class="top-bar">
-    <div class="logo">NexaSens</div>
-    <div class="left-menu"><a href="/">Accueil</a></div>
-    <div class="right-menu">
-        {{ username }} | <a href="/settings">Settings</a> | <a href="/logout">Logout</a>
+<div class="topbar">
+    <div class="left">
+        <span class="logo">Nexa Sensors</span>
+        <a href="/" class="btn">Accueil</a>
+    </div>
+    <div class="right">
+        <div class="user-dropdown">
+            <span>{{ username }}</span>
+            <div class="dropdown-content">
+                <a href="/settings">Settings</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
     </div>
 </div>
 
-<h1>{{ zone }}</h1>
+<h2>{{ zone }}</h2>
 
 <form method="get" class="date-form">
-    Date: <input type="date" name="date" value="{{ selected_date }}">
-    <button type="submit">Go</button>
+    <label>Select Date:</label>
+    <input type="date" name="date" value="{{ selected_date }}">
+    <button type="submit">Apply</button>
 </form>
 
 <table>
     <tr>
-        <th>Sensor</th>
+        <th>Sensor ID</th>
         <th>Date</th>
         <th>Time</th>
-        <th>Status</th>
+        <th>Machine Status</th>
         <th>Value</th>
+        <th>Daily Avg</th>
     </tr>
 
     {% for sensor, readings in data.items() %}
-        {% for date_, time_, value, status in readings %}
+        {% set avg = (readings | map(attribute=2) | sum) / (readings | length) %}
+        {% for date, time_, value, status in readings %}
             <tr>
                 <td>{{ sensor }}</td>
-                <td>{{ date_ }}</td>
+                <td>{{ date }}</td>
                 <td>{{ time_ }}</td>
-                <td class="{{ 'on' if status=='ON' else 'off' }}">{{ status }}</td>
+                <td class="machine-status {% if status == 'ON' %}on{% else %}off{% endif %}">{{ status }}</td>
                 <td>{{ value }}</td>
+                <td>{{ "%.2f"|format(avg) }}</td>
             </tr>
         {% endfor %}
     {% endfor %}

@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NexaSens</title>
+    <title>Nexa Sensors</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<div class="top-bar">
-    <div class="logo">NexaSens</div>
-    <div class="left-menu"><a href="/">Accueil</a></div>
-    <div class="right-menu">
-        {{ username }} | <a href="/settings">Settings</a> | <a href="/logout">Logout</a>
+<div class="topbar">
+    <div class="left">
+        <span class="logo">Nexa Sensors</span>
+        <a href="/" class="btn">Accueil</a>
+    </div>
+    <div class="right">
+        <div class="user-dropdown">
+            <span>{{ username }}</span>
+            <div class="dropdown-content">
+                <a href="/settings">Settings</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
     </div>
 </div>
 
-<h1>Welcome to NexaSens</h1>
-
 <div class="zones">
     {% for zone in zones %}
-        <a class="zone-box" href="/zone/{{ zone }}">{{ zone }}</a>
+        <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
     {% endfor %}
 </div>
 

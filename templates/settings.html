@@ -1,28 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Settings - NexaSens</title>
+    <title>Settings - Nexa Sensors</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<div class="top-bar">
-    <div class="logo">NexaSens</div>
-    <div class="left-menu"><a href="/">Accueil</a></div>
-    <div class="right-menu">{{ username }} | <a href="/logout">Logout</a></div>
+<div class="topbar">
+    <div class="left">
+        <span class="logo">Nexa Sensors</span>
+        <a href="/" class="btn">Accueil</a>
+    </div>
+    <div class="right">
+        <div class="user-dropdown">
+            <span>{{ username }}</span>
+            <div class="dropdown-content">
+                <a href="/settings">Settings</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="settings">
-    <h2>Account Settings</h2>
-    {% if message %}<p>{{ message }}</p>{% endif %}
-    <form method="POST">
-        <label>New Username:</label><br>
-        <input type="text" name="username"><br>
-        <label>New Password:</label><br>
-        <input type="password" name="password"><br><br>
-        <button type="submit">Save</button>
-    </form>
-</div>
+<h2>Settings</h2>
+<p>{{ message }}</p>
+<form method="POST">
+    <label>New Username:</label><br>
+    <input type="text" name="username"><br>
+    <label>New Password:</label><br>
+    <input type="password" name="password"><br><br>
+    <button type="submit">Save</button>
+</form>
 
 </body>
 </html>
