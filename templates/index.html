@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NEXA SENS</title>
+    <title>NEXA SENS Dashboard</title>
     <link rel="stylesheet" href="/static/PRO.css">
 </head>
 <body>
-
 <div class="top-bar">
-    <span class="brand">NEXA SENS</span>
-    <div class="top-actions">
-        <span class="welcome">Welcome, {{ username }} ({{ role.capitalize() }})</span>
-        <a href="/logout" class="btn">Logout</a>
+    <div class="left">
+        <span class="logo">NEXA SENS</span>
+        <a href="/" class="accueil">Accueil</a>
+    </div>
+    <div class="right">
+        <div class="dropdown">
+            <button class="dropbtn">{{ username }}</button>
+            <div class="dropdown-content">
+                <a href="/settings">Settings</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
     </div>
 </div>
 
-<h1 class="title">Zones</h1>
-
-<div class="zones {% if zones|length == 1 %}single{% endif %}">
+<div class="zones" {% if zones|length == 1 %}style="justify-content:center;"{% endif %}>
     {% for zone in zones %}
         <a href="/zone/{{ zone }}" class="zone-box">{{ zone }}</a>
     {% endfor %}
 </div>
-
 </body>
 </html>
