@@ -60,7 +60,7 @@ conn.commit()
 # -----------------------------
 def create_demo_users():
     users = [
-        ("manager", "1234", "Mr.INAL"),
+        ("manager", "1234", "manager"),
         ("eng1", "1234", "engineer"),
         ("eng2", "1234", "engineer"),
         ("eng3", "1234", "engineer"),
@@ -208,4 +208,4 @@ def zone_page(zone_name):
     return render_template("zone.html", zone=zone_name, data=data, selected_date=selected_date)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
